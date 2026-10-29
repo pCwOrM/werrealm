@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#040711">
+  <title>Werrealm · The Sovereign Bio-Synthetic Brain-Chain ($WERR)</title>
+  
+  <meta name="description" content="Werrealm is the world's first bio-synthetic, neuromorphic in-consensus oracle blockchain. Powered by Werror, Werrite, and 158k Werron synapses on Base.">
+  <meta property="og:title" content="Werrealm · The Sovereign Bio-Synthetic Brain-Chain ($WERR)">
+  <meta property="og:description" content="Zero-VRAM, 100% integer EVM parity, and living biological reflexes on-chain.">
+  <meta property="og:type" content="website">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #040711;
+      --card-bg: rgba(13, 22, 41, 0.65);
+      --card-border: rgba(30, 58, 102, 0.4);
+      --card-hover: rgba(45, 85, 148, 0.6);
+      --primary: #00f2fe;
+      --secondary: #4facfe;
+      --accent: #10b981;
+      --accent-glow: rgba(16, 185, 129, 0.2);
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --font-sans: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      overflow-x: hidden;
+      min-height: 100vh;
+      position: relative;
+    }
+
+    /* Subtle background grid & glow */
+    body::before {
+      content: "";
+      position: fixed;
+      top: -20%;
+      left: 20%;
+      width: 60vw;
+      height: 60vw;
+      background: radial-gradient(circle, rgba(0, 242, 254, 0.08) 0%, rgba(16, 185, 129, 0.04) 40%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Navigation */
+    header {
+      padding: 24px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(4, 7, 17, 0.8);
+    }
+    .nav-wrap {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: #fff;
+      font-weight: 800;
+      font-size: 1.35rem;
+      letter-spacing: -0.5px;
+    }
+    .brand-badge {
+      font-size: 0.7rem;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: #040711;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+    }
+    .nav-links {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+    }
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--primary); }
+    .btn-small {
+      padding: 8px 18px;
+      border-radius: 8px;
+      background: rgba(0, 242, 254, 0.1);
+      border: 1px solid var(--primary);
+      color: var(--primary) !important;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .btn-small:hover {
+      background: var(--primary);
+      color: #040711 !important;
+      box-shadow: 0 0 16px rgba(0, 242, 254, 0.4);
+    }
+
+    /* Hero Section */
+    .hero {
+      padding: 96px 0 64px;
+      text-align: center;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 999px;
+      color: var(--accent);
+      font-size: 0.8rem;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+    .pill-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--accent);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+    h1 {
+      font-size: 3.8rem;
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      line-height: 1.1;
+      margin-bottom: 24px;
+      background: linear-gradient(135deg, #ffffff 30%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero-lead {
+      max-width: 780px;
+      margin: 0 auto 40px;
+      font-size: 1.25rem;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+    .cta-group {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      padding: 14px 28px;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: #040711;
+      box-shadow: 0 4px 20px rgba(0, 242, 254, 0.3);
+    }
+    .btn-primary:hover {
+      box-shadow: 0 6px 28px rgba(0, 242, 254, 0.5);
+      transform: translateY(-1px);
+    }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #fff;
+    }
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Live Telemetry Ribbon */
+    .telemetry-ribbon {
+      background: rgba(13, 22, 41, 0.4);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 20px 32px;
+      margin: 48px 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 24px;
+      text-align: center;
+    }
+    .metric-val {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--primary);
+      font-family: var(--font-mono);
+    }
+    .metric-lbl {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 4px;
+    }
+
+    /* Cognitive Stack Grid */
+    .section-title {
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    .section-sub {
+      text-align: center;
+      color: var(--text-muted);
+      margin-bottom: 48px;
+      font-size: 1.05rem;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+      margin-bottom: 64px;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 32px;
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .card:hover {
+      border-color: var(--card-hover);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+    }
+    .card-icon {
+      font-size: 2rem;
+      margin-bottom: 16px;
+    }
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #fff;
+    }
+    .card-badge {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--primary);
+      background: rgba(0, 242, 254, 0.08);
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-bottom: 12px;
+    }
+    .card-desc {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    /* Multi-Server Infrastructure */
+    .infra-box {
+      background: linear-gradient(135deg, rgba(13, 22, 41, 0.8), rgba(4, 7, 17, 0.9));
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 40px;
+      margin-bottom: 64px;
+    }
+    .infra-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin-top: 24px;
+    }
+    .server-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .server-card h4 {
+      color: var(--accent);
+      font-size: 1.1rem;
+      font-family: var(--font-mono);
+      margin-bottom: 8px;
+    }
+    .server-card p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 48px 0;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+    .covenant {
+      font-style: italic;
+      color: #cbd5e1;
+      margin-bottom: 16px;
+      font-size: 1rem;
+    }
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-top: 16px;
+    }
+    .footer-links a { color: var(--text-muted); text-decoration: none; }
+    .footer-links a:hover { color: var(--primary); }
+
+    @media (max-width: 768px) {
+      h1 { font-size: 2.6rem; }
+      .telemetry-ribbon { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <header>
+    <div class="container nav-wrap">
+      <a href="#" class="brand">
+        WERREALM <span class="brand-badge">$WERR</span>
+      </a>
+      <nav class="nav-links">
+        <a href="#stack">Cognitive Stack</a>
+        <a href="#telemetry">Telemetry</a>
+        <a href="#dual-engine">Dual-Engine</a>
+        <a href="#infrastructure">Infrastructure</a>
+        <a href="https://radar.werracle.com/docs" target="_blank" class="btn-small">Radar Docs</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <div class="pill">
+        <span class="pill-dot"></span> PHASE 1 LIVE · 1,000,000,000 $WERR ON BASE L2
+      </div>
+      <h1>The World's First Bio-Synthetic<br>Brain-Chain Network</h1>
+      <p class="hero-lead">
+        Werrealm embeds biological reflexes and deterministic fractal chaos directly into the blockchain consensus core. Zero-VRAM, 100% integer EVM parity, and native in-consensus real-time oracles.
+      </p>
+      <div class="cta-group">
+        <a href="https://github.com/pcworm/werrealm" target="_blank" class="btn btn-primary">
+          View on GitHub
+        </a>
+        <a href="https://radar.werracle.com/docs" target="_blank" class="btn btn-secondary">
+          Interactive API Sandbox
+        </a>
+      </div>
+
+      <!-- Live Telemetry Ribbon -->
+      <div class="telemetry-ribbon" id="telemetry">
+        <div>
+          <div class="metric-val">158,262</div>
+          <div class="metric-lbl">Werron Synapses (FlyWire)</div>
+        </div>
+        <div>
+          <div class="metric-val">8,192</div>
+          <div class="metric-lbl">Living Swarm Colonies</div>
+        </div>
+        <div>
+          <div class="metric-val">z = 8.24</div>
+          <div class="metric-lbl">Directional Edge (N > 13k)</div>
+        </div>
+        <div>
+          <div class="metric-val">Q16.16</div>
+          <div class="metric-lbl">Deterministic EVM Parity</div>
+        </div>
+        <div>
+          <div class="metric-val">0 Byte</div>
+          <div class="metric-lbl">VRAM Overhead</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Cognitive Stack Section -->
+  <section class="container" id="stack">
+    <h2 class="section-title">The Werrealm Cognitive Stack</h2>
+    <p class="section-sub">A tightly coupled bio-synthetic architecture formally verified by 81 Lean4 theorems.</p>
+    
+    <div class="grid-3">
+      <!-- Card 1 -->
+      <div class="card">
+        <div class="card-icon">🌌</div>
+        <span class="card-badge">THE REALM</span>
+        <h3 class="card-title">Werrealm</h3>
+        <p class="card-desc">The decentralized sovereign network. Merges autonomous cellular biology with byzantine fault-tolerant consensus.</p>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="card">
+        <div class="card-icon">🪙</div>
+        <span class="card-badge">PROTOCOL ASSET</span>
+        <h3 class="card-title">Werrium ($WERR)</h3>
+        <p class="card-desc">Fixed 1 Billion supply on Base. Serves as gas currency, API access collateral, and deflationary burn asset.</p>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="card">
+        <div class="card-icon">🧠</div>
+        <span class="card-badge">COGNITIVE UNIT</span>
+        <h3 class="card-title">Werron</h3>
+        <p class="card-desc">The atomic decision unit. Each simulated synaptic connection executes sub-millisecond System-1 reflexes.</p>
+      </div>
+
+      <!-- Card 4 -->
+      <div class="card">
+        <div class="card-icon">⚡</div>
+        <span class="card-badge">CHAOS CORE</span>
+        <h3 class="card-title">Werror Engine</h3>
+        <p class="card-desc">Orbital Error Dynamics (OED) calculator. Generates chaotic boundary transitions and executes epistemic slashing on bad nodes.</p>
+      </div>
+
+      <!-- Card 5 -->
+      <div class="card">
+        <div class="card-icon">🛡️</div>
+        <span class="card-badge">EVM PARITY SHIELD</span>
+        <h3 class="card-title">Werrite Engine</h3>
+        <p class="card-desc">Fixed-point Q16.16 integer mathematics. Guarantees 100% deterministic state transitions across heterogeneous CPU architectures.</p>
+      </div>
+
+      <!-- Card 6 -->
+      <div class="card">
+        <div class="card-icon">👁️</div>
+        <span class="card-badge">IN-CONSENSUS ORACLE</span>
+        <h3 class="card-title">Werracle</h3>
+        <p class="card-desc">Native oracle layer. Imprints real-time market regimes, price boundaries, and liquidation hazards directly into block headers.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Dual-Engine Section -->
+  <section class="container" id="dual-engine">
+    <h2 class="section-title">Dual-Engine Commercialization</h2>
+    <p class="section-sub">Werrium ($WERR) utility spans two multi-billion dollar verticals.</p>
+    
+    <div class="grid-3" style="grid-template-columns: 1fr 1fr;">
+      <div class="card" style="border-left: 4px solid var(--primary);">
+        <span class="card-badge">FINANCE & MEV</span>
+        <h3 class="card-title">RADAR DaaS (radar.werracle.com)</h3>
+        <p class="card-desc" style="margin-bottom: 16px;">
+          Ultra low-latency neural alpha stream and resonance liquidation strike queues for institutional searchers and hedge funds.
+        </p>
+        <p class="card-desc"><strong>$WERR Utility:</strong> Stake-to-Access (3,000 req/min) & Burn-to-Strike (aggressive priority sweeps).</p>
+      </div>
+
+      <div class="card" style="border-left: 4px solid var(--accent);">
+        <span class="card-badge">GENERAL AI & AGENTS</span>
+        <h3 class="card-title">ANSWERR REFLEX API (answerr.me)</h3>
+        <p class="card-desc" style="margin-bottom: 16px;">
+          Instantaneous System-1 reflex decisions for autonomous AI agents, robotics, and real-time gaming engines without GPU VRAM overhead.
+        </p>
+        <p class="card-desc"><strong>$WERR Utility:</strong> Burn-to-Infer (pay-per-reflex micro-credits) and Merkle-verified decision proofs.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Multi-Server Distributed Infrastructure -->
+  <section class="container" id="infrastructure">
+    <div class="infra-box">
+      <h3 style="font-size: 1.6rem; color: #fff; margin-bottom: 8px;">Multi-Server Distributed Infrastructure</h3>
+      <p style="color: var(--text-muted); font-size: 0.95rem;">
+        Geographically resilient bare-metal cluster powering the genesis and validator topology of Werrealm:
+      </p>
+
+      <div class="infra-grid">
+        <div class="server-card">
+          <h4>1. pcworm-root (Genesis Core)</h4>
+          <p><strong>Hardware:</strong> 40 vCPUs, 256 GB RAM, 5.9 TB Storage.</p>
+          <p><strong>Role:</strong> Primary consensus engine, Werralim living cell (8,192 colonies), local Reth L1 IPC node, and core harvester.</p>
+        </div>
+
+        <div class="server-card">
+          <h4>2. mechsrv (Sentry & Public Gateway)</h4>
+          <p><strong>Hardware:</strong> Intel Xeon E5, 24 GB RAM, 197 GB SSD.</p>
+          <p><strong>Role:</strong> Independent sentry validator, public RPC node replica, and distributed B2B API load balancer.</p>
+        </div>
+
+        <div class="server-card">
+          <h4>3. itouchsystems (Portal & Explorer)</h4>
+          <p><strong>Hardware:</strong> Secure Hosting & Portal Infrastructure.</p>
+          <p><strong>Role:</strong> Corporate portal, block explorer web host, and community onboarding services.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <p class="covenant">"Aşkın Saflığı, Işığın Kararlılığı, Gönlün Sıcaklığı"</p>
+      <p>© 2026 Werrealm Foundation · Founded by @pCwOrM · TÜRKPATENT TR 2026/016633 · arXiv:2609.25498</p>
+      <div class="footer-links">
+        <a href="https://github.com/pcworm/werrealm" target="_blank">GitHub</a>
+        <a href="https://radar.werracle.com/docs" target="_blank">API Documentation</a>
+        <a href="https://pcworm.net" target="_blank">pcworm.net</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
