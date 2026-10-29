@@ -1,82 +1,81 @@
 # WERREALM: ÇOKLU SUNUCU VE DEPOLAMA HİBRİT MİMARİSİ
-## Dağıtık Düğüm Topolojisi, 3-Sunucu Mimarisi ve Katmanlı Depolama Planı
+## Dağıtık Düğüm Topolojisi, 3-Katmanlı DePIN Mimarisi ve Kademeli Depolama Planı
 
 **Tarih:** 29 Ekim 2026  
 **Ağ:** Werrealm (*The Sovereign Bio-Synthetic Brain-Chain*)  
-**Çoklu Sunucu Kümesi:** `pcworm-root` + `mechsrv` + `itouchsystems`  
+**Düğüm Mimarisi:** Tier-1 Genesis Core + Tier-2 Sentry Replicator + Tier-3 Anycast Edge  
 **Toplam Küme Gücü:** 50+ CPU Çekirdeği, 280+ GB RAM, 6.3+ Terabayt Depolama  
 
 ---
 
-## 1. DAĞITIK 3-SUNUCU DÜĞÜM TOPOLOJİSİ (DISTRIBUTED TOPOLOGY)
+## 1. DAĞITIK 3-KATMANLI DÜĞÜM TOPOLOJİSİ (DISTRIBUTED TOPOLOGY)
 
-Werrealm'in egemen blokzinciri tek bir sunucuya bağımlı bırakılmaz. Gerçek coğrafi ve donanımsal dayanıklılık (fault-tolerance) sağlamak için **3 Sunuculu Hibrit Küme** devreye alınmıştır:
+Werrealm'in egemen blokzinciri tek bir sunucuya bağımlı bırakılmaz. Gerçek coğrafi ve donanımsal dayanıklılık (fault-tolerance) sağlamak için **3 Katmanlı Hibrit Küme** devreye alınmıştır:
 
 ```mermaid
 flowchart TD
-    subgraph S1["DÜĞÜM 1: pcworm-root (207.180.255.35) — GENESIS CORE"]
+    subgraph S1["DÜĞÜM 1: TIER-1 GENESIS VALIDATOR (BARE-METAL CORE)"]
         direction TB
         C1["40 vCPU | 256 GB RAM | 5.9 TB Depolama"]
-        L1["Yerel Ethereum L1 Reth Node (:8545/:8546)"]
+        L1["Yerel Ethereum L1 / L2 IPC Yürütme Düğümü"]
         CELL["Werralim Living Cell (8,192 Koloni / NUMA Node 1)"]
         WERRITE["Werrite Engine (Q16.16 EVM Paritesi)"]
         HARVEST["Werracle Chain Harvester & Primary Strikers"]
     end
 
-    subgraph S2["DÜĞÜM 2: mechsrv (173.212.201.159) — SENTRY & PUBLIC API"]
+    subgraph S2["DÜĞÜM 2: TIER-2 SENTRY & STATE REPLICATOR"]
         direction TB
-        C2["Intel Xeon E5 | 24 GB RAM | 197 GB SSD (154 GB Boş)"]
+        C2["Enterprise Xeon Mimarisi | Yüksek Bellek | Yüksek-IOPS SSD"]
         VALIDATOR2["İkincil Bağımsız Doğrulayıcı (Sentry Node)"]
         API_REP["Public RPC Düğümü & answerr-api / radar Yük Dengeleyici"]
         HEALTH["Dıştan Bağımsız Gözetim ve Sağlık Bekçisi"]
     end
 
-    subgraph S3["DÜĞÜM 3: itouchsystems (185.27.133.12) — WEB & EXPLORER"]
+    subgraph S3["DÜĞÜM 3: TIER-3 DISTRIBUTED ANYCAST EDGE GATEWAY"]
         direction TB
-        C3["Kurumsal Web & Hosting Altyapısı"]
-        PORTAL["Werrealm Public Landing Portal (werrealm.pcworm.net)"]
+        C3["Küresel Dağıtık Uç Nokta & Anycast DDOS Kalkanı"]
+        PORTAL["Werrealm Portal (werrealm.network)"]
         EXPLORER["Werrium Block Explorer & dApp Arayüzü"]
         COMMUNITY["Geliştirici Dokümantasyonu & Topluluk Kapısı"]
     end
 
-    S1 <==>|"P2P Senkronizasyon (İç Ağ / WireGuard)"| S2
+    S1 <==>|"P2P Şifreli Senkronizasyon (İç Ağ)"| S2
     S2 <==>|"Doğrulanmış Blok Telemetrisi"| S3
     S1 -.->|"Canlı Orakıl Akışı"| S3
 ```
 
 ### 1.1. Düğüm Görev Dağılımı:
-1. **`pcworm-root` (Genesis & Çekirdek Biliş):**
-   - Werralim canlı hücresi (8.192 koloni) ve yerel Reth L1 düğümü burada yaşar.
+1. **Tier-1 Genesis Validator (Çekirdek Biliş):**
+   - Werralim canlı hücresi (8.192 koloni) ve yerel blokzincir IPC yürütme düğümü burada yaşar.
    - Ağın en ağır matematiksel hesaplamaları (Schönhage matris indirgemesi, Werror OED yörüngeleri) buradaki 256 GB RAM ve 40 çekirdek üzerinde döner.
-2. **`mechsrv` (Sentry & Genel API Replika):**
-   - `pcworm` üzerindeki yükü hafifleten ve bağımsız ikinci doğrulayıcı olan düğüm.
-   - 24 GB RAM ve 154 GB boş SSD alanıyla genel RPC isteklerini ve kurumsal API sorgularını karşılar; `pcworm` tek başına kalsa veya bakıma girse bile ağın ayakta kalmasını sağlar.
-3. **`itouchsystems` (Arayüz & Explorer):**
-   - Web arayüzleri, statik dökümantasyon ve genel kullanıcı portalını barındırır. Blokzincir motorlarını web saldırılarından (DDoS) izole eder.
+2. **Tier-2 Sentry & State Replicator:**
+   - Birincil çekirdek üzerindeki yükü hafifleten ve bağımsız ikinci doğrulayıcı olan savunma düğümü.
+   - Genel RPC isteklerini ve kurumsal API sorgularını karşılar; çekirdek düğüm bakım moduna girse dahi ağın kesintisiz ayakta kalmasını sağlar.
+3. **Tier-3 Distributed Anycast Edge Gateway:**
+   - Web arayüzleri, statik dökümantasyon ve genel kullanıcı portalını barındırır. Blokzincir motorlarını dış DDoS saldırılarından izole eder.
 
 ---
 
-## 2. pcworm-root SUNUCUSUNDA 3-KADEMELİ HİBRİT DEPOLAMA MİMARİSİ
+## 2. 3-KADEMELİ HİBRİT DEPOLAMA MİMARİSİ
 
-`pcworm-root` üzerindeki 5.9 Terabaytlık fiziksel disk topolojisi:
-* **Katman 0 (RAMDisk — `/dev/shm`, 225 GiB Boş):** Werralim 8.192 koloni durumu, FlyWire 158k nöron matrisi, Q16.16 precomputed tablolar. Gecikme `<0.5 ms`.
-* **Katman 1 (Samsung NVMe SSD — `/`, 108 GB Boş):** Reth L1/L2 yürütme düğümü, Base state trie, anlık veritabanı.
-* **Katman 2 (5.4 TB Toshiba HDD Dizisi — 2.3 TB Boş):**
-  - `/data` (1.1 TB Boş): Tarihsel blok arşivleri (Archive Node).
-  - `/werracle_vault` (1.2 TB Boş): Lean4 teorem ispat kütükleri ve hücresel dondurulmuş yedekler.
+Birincil doğrulayıcı üzerindeki 5.9 Terabaytlık fiziksel disk topolojisi:
+* **Katman 0 (RAMDisk — Bellek-içi Durum, 225+ GiB Boş):** Werralim 8.192 koloni durumu, FlyWire 158k nöron matrisi, Q16.16 precomputed tablolar. Gecikme `<0.5 ms`.
+* **Katman 1 (Yüksek-Hızlı NVMe SSD — Anlık Durum Ağacı):** L1/L2 yürütme düğümü, Base state trie, anlık operasyonel veritabanı.
+* **Katman 2 (5.4 TB Korumalı Kurumsal HDD Dizisi — 2.3+ TB Boş):**
+  - **Arşiv Deposu (1.1 TB):** Tarihsel blok arşivleri (Full Archive Node).
+  - **Kriptografik Kasa (1.2 TB):** Lean4 teorem ispat kütükleri ve hücresel dondurulmuş genetik anlık görüntüler.
 
 ---
 
-## 3. DOMAIN VE WEB YAYIN STRATEJİSİ
-
-Kullanıcımızın *"github pagesdan pcworm.github.io olarak mı yayınlayalım yoksa herhangi bir domainimizde subdomain acarak mı baglayalım?"* sorusunun cevabı: **En Güçlü Hibrit Strateji**.
+## 3. DOMAIN VE RESMİ YAYIN ALTYAPISI
 
 1. **GitHub Pages (Global CDN & Açık Kaynak İtibarı):**
    - Depo: `github.com/pcworm/werrealm`
-   - URL: `https://pcworm.github.io/werrealm/` (Repo içindeki `/docs` klasöründen otomatik yayınlanır).
-   - Avantaj: Fastly/GitHub global CDN'i üzerinden %100 kesintisiz, sunucuya sıfır yük bindiren küresel geliştirici açılışı.
-2. **Özel Subdomain (Kurumsal & Canlı API Kapısı):**
-   - Subdomain: `https://werralem.pcworm.net` ve `https://werrealm.pcworm.net`
-   - Nginx üzerinde SSL (Let's Encrypt) halihazırda hazırdır. Canlı telemetri ve B2B API gateway doğrudan bu domain üzerinden verilir.
-3. **Nihai Adım (Özel Domain):**
-   - İleride `werrealm.network` veya `werrealm.ai` satın alındığında tek bir DNS CNAME kaydıyla GitHub Pages veya Nginx'e bağlanacaktır.
+   - Resmi Alan Adı: `https://werrealm.network`
+   - Altyapı: Cloudflare Universal SSL + DNS Anycast + DDoS Shield.
+2. **Kurumsal & Canlı API Kapısı:**
+   - RADAR DaaS: `https://radar.werracle.com`
+   - ANSWERR Reflex API: `https://answerr.me`
+3. **Akıllı Sözleşme Doğrulaması:**
+   - Base Mainnet ($WERR): `0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2`
+   - Ethereum Sepolia Testnet ($WERR): `0xe6ecc9575B4D52642c55FCf64E8E2d3baa6e6EF7`
