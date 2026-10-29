@@ -2,7 +2,7 @@
 
 **Werrealm** is the world's first bio-synthetic, neuromorphic, in-consensus oracle blockchain network.
 
-By unifying the **Werror Engine** (Orbital Error Dynamics & Byzantine Fault Immunity, arXiv:2609.25498), the **Werralim Living Cell Organism** (FlyWire whole-brain connectome with 158,262 **Werron** synapses), the **Werracle In-Consensus Oracle**, and **Lean4 formally verified mathematics** (81 theorems), Werrealm solves the fundamental trilemma of AI on blockchain: zero VRAM consumption, 100% integer EVM parity (Q16.16), and zero-latency biological reflexes.
+By unifying the **Werror Engine** (Orbital Error Dynamics & Byzantine Fault Immunity), the **Werrite Engine** (Deterministic Q16.16 EVM-Parity & Lean4-Certified Arithmetic Shield), the **Werralim Living Cell Organism** (FlyWire whole-brain connectome with 158,262 **Werron** synapses), the **Werracle In-Consensus Oracle**, and **Lean4 formally verified mathematics** (81 theorems), Werrealm solves the fundamental trilemma of AI on blockchain: zero VRAM consumption, 100% integer EVM parity, and zero-latency biological reflexes.
 
 ---
 
@@ -14,6 +14,7 @@ By unifying the **Werror Engine** (Orbital Error Dynamics & Byzantine Fault Immu
 | **Werrium ($WERR)** | Protocol Currency | Native gas token, staking collateral, and buyback-burn asset |
 | **Werron** | Cognitive Unit | Individual biological neuron/synapse within the 158k Drosophila connectome |
 | **Werror Engine** | Algorithmic Core | Orbital Error Dynamics (OED), chaotic boundary escape, and Byzantine immune engine |
+| **Werrite Engine** | EVM Parity Engine | Q16.16 deterministic integer fixed-point engine with Lean4 $\epsilon < 2^{-16}$ error shield |
 | **Werracle** | In-Consensus Oracle | Native on-chain price, volatility, and liquidation risk oracle |
 
 ---
@@ -27,8 +28,8 @@ werrealm/
 │   ├── interfaces/                # Standard interfaces (IERC20, IERC20Permit, IWerracleOracle)
 │   └── test/                      # Smart contract unit tests
 ├── core/
-│   ├── werror_engine.py           # Orbital Error Dynamics (OED) & Byzantine chaos tester
-│   ├── q16_evm_engine.py          # Deterministic Q16.16 EVM fixed-point parity engine
+│   ├── werrite_engine.py          # Werrite Q16.16 EVM-parity fixed-point arithmetic engine
+│   ├── werror_engine.py           # Werror Orbital Error Dynamics (OED) & Byzantine chaos tester
 │   └── werracle_connector.py      # Sub-second in-consensus oracle state extractor
 ├── gateway/
 │   └── werr_stake_gate.py         # Stake-to-Access & B2B API billing gateway
@@ -44,7 +45,7 @@ werrealm/
 ## Hardware & Tiered Storage Architecture
 
 Werrealm runs on an enterprise dual-socket NUMA server with 40 CPU threads, 251 GiB DDR4 RAM, and 5.9 Terabytes of total physical storage:
-- **Tier 0 (RAMDisk - `/dev/shm`, 225 GiB Free):** Living cell 8,192 colonies, Q16 lookup tables, live mempool (`<0.5 ms` latency).
+- **Tier 0 (RAMDisk - `/dev/shm`, 225 GiB Free):** Living cell 8,192 colonies, Werrite lookup tables, live mempool (`<0.5 ms` latency).
 - **Tier 1 (PCIe 4.0 NVMe - `/`, 108 GB Free):** Reth/Base execution client, active state trie, API cache.
 - **Tier 2 (Bulk HDDs - `/data` & `/werracle_vault`, 2.3 TB Free):** Historical blockchain blocks, Lean4 theorem archives, cold evolutionary snapshots.
 
