@@ -401,9 +401,10 @@
         <a href="#stack">Stack</a>
         <a href="#dual-engine">Dual-Engine</a>
         <a href="#tokenomics">Tokenomics</a>
+        <a href="#tiers" style="color: var(--primary); font-weight: 600;">Pricing & Tiers</a>
         <a href="#infrastructure">DePIN</a>
         <a href="/manifesto.html">Manifesto</a>
-        <a href="https://radar.werracle.com/docs" target="_blank">Radar API</a>
+        <a href="https://radar.werracle.com" target="_blank">Radar DaaS</a>
         <a href="https://basescan.org/address/0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2" target="_blank" class="btn-small">Basescan</a>
       </nav>
     </div>
@@ -621,6 +622,113 @@
         <div style="border-left: 3px solid #ef4444; padding-left: 12px;">
           <div style="font-family: var(--font-mono); font-size: 1.2rem; font-weight: 800; color: #fff;">5% (50M)</div>
           <div style="font-size: 0.85rem; color: var(--text-muted);">Public Fair Launch Liquidity</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Radar DaaS Tiers & Sovereign Staking Matrix Section -->
+  <section class="container" id="tiers" style="margin: 60px auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 12px;">
+      <div>
+        <h2 class="section-title" style="margin-bottom: 6px; text-align: left;">Radar DaaS Plans & $WERR Sovereign Staking</h2>
+        <p class="section-sub" style="margin: 0; text-align: left;">Two-dimensional institutional pricing: commercial subscription quotas paired with on-chain $WERR staking execution multipliers.</p>
+      </div>
+      <a href="/tokenomics.html" class="btn btn-secondary" style="font-size: 0.85rem; padding: 8px 18px;">
+        View Full Matrix in Tokenomics &rarr;
+      </a>
+    </div>
+
+    <!-- Commercial Tiers Grid -->
+    <div class="grid-3" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); margin-top: 24px;">
+      <!-- Developer -->
+      <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <span class="card-badge">QUANT RESEARCH</span>
+          <h3 class="card-title" style="font-size: 1.35rem; color: #fff; margin-bottom: 4px;">Developer Tier</h3>
+          <div style="font-family: var(--font-mono); font-size: 1.6rem; font-weight: 800; color: var(--primary); margin-bottom: 12px;">
+            $99 <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: normal;">/ month (4,100 ₺)</span>
+          </div>
+          <p class="card-desc" style="font-size: 0.88rem; line-height: 1.6; margin-bottom: 16px;">
+            Designed for quant researchers, backtesters, and independent bot operators.
+          </p>
+          <ul style="color: #cbd5e1; font-size: 0.85rem; margin-left: 18px; margin-bottom: 20px; line-height: 1.7;">
+            <li>250,000 queries quota (300 req/min)</li>
+            <li>Morpho Blue & Aave v3 positions</li>
+            <li>50ms REST API gateway</li>
+            <li>0% VAT Tax-Exempt Commercial Invoice</li>
+          </ul>
+        </div>
+        <a href="https://radar.werracle.com" target="_blank" class="btn" style="text-align: center; justify-content: center; width: 100%; font-size: 0.85rem; padding: 10px;">
+          Subscribe on Radar &rarr;
+        </a>
+      </div>
+
+      <!-- Pro -->
+      <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; border-color: rgba(0, 242, 254, 0.4); background: rgba(0, 242, 254, 0.03);">
+        <div>
+          <span class="card-badge" style="background: rgba(0, 242, 254, 0.15); color: var(--primary);">HFT SEARCHERS</span>
+          <h3 class="card-title" style="font-size: 1.35rem; color: #fff; margin-bottom: 4px;">Pro Searcher</h3>
+          <div style="font-family: var(--font-mono); font-size: 1.6rem; font-weight: 800; color: var(--primary); margin-bottom: 12px;">
+            $199 <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: normal;">/ month (8,250 ₺)</span>
+          </div>
+          <p class="card-desc" style="font-size: 0.88rem; line-height: 1.6; margin-bottom: 16px;">
+            Engineered for high-frequency searchers and active arbitrageur nodes.
+          </p>
+          <ul style="color: #cbd5e1; font-size: 0.85rem; margin-left: 18px; margin-bottom: 20px; line-height: 1.7;">
+            <li>1,200 req/min unlimited bandwidth</li>
+            <li>Resonance liquidation filters (HF &lt; 1.05)</li>
+            <li>Base Flashblocks + Arbitrum Sequencer</li>
+            <li>25ms RAMDisk low-latency cache</li>
+          </ul>
+        </div>
+        <a href="https://radar.werracle.com" target="_blank" class="btn" style="text-align: center; justify-content: center; width: 100%; font-size: 0.85rem; padding: 10px;">
+          Subscribe on Radar &rarr;
+        </a>
+      </div>
+
+      <!-- Institutional -->
+      <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.03);">
+        <div>
+          <span class="card-badge" style="background: rgba(16, 185, 129, 0.15); color: var(--accent);">BARE-METAL VIP</span>
+          <h3 class="card-title" style="font-size: 1.35rem; color: #fff; margin-bottom: 4px;">Institutional Tier</h3>
+          <div style="font-family: var(--font-mono); font-size: 1.6rem; font-weight: 800; color: var(--accent); margin-bottom: 12px;">
+            $499 <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: normal;">/ month (20,700 ₺)</span>
+          </div>
+          <p class="card-desc" style="font-size: 0.88rem; line-height: 1.6; margin-bottom: 16px;">
+            For quantitative hedge funds, risk curators, and syndicates requiring maximum speed.
+          </p>
+          <ul style="color: #cbd5e1; font-size: 0.85rem; margin-left: 18px; margin-bottom: 20px; line-height: 1.7;">
+            <li>3,000 req/min bare-metal priority allocation</li>
+            <li>Neural-Alpha neuro-predictive feed</li>
+            <li>Triple-Chain: Base + Arbitrum + L1 Reth</li>
+            <li>Sub-15ms guaranteed SLA latency</li>
+          </ul>
+        </div>
+        <a href="https://radar.werracle.com" target="_blank" class="btn" style="background: linear-gradient(135deg, var(--accent), #059669); text-align: center; justify-content: center; width: 100%; font-size: 0.85rem; padding: 10px; color: #fff;">
+          Subscribe on Radar &rarr;
+        </a>
+      </div>
+    </div>
+
+    <!-- Sovereign Staking Multipliers Bar -->
+    <div class="card" style="margin-top: 24px; padding: 24px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.1);">
+      <h3 style="font-size: 1.15rem; color: #fff; margin-bottom: 14px;">🌟 $WERR Sovereign Staking & Positive Discrimination Multipliers</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;">
+        <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 14px;">
+          <div style="font-family: var(--font-mono); font-size: 1rem; font-weight: 700; color: #fff;">🛡️ Genesis Sentinel</div>
+          <div style="font-size: 0.8rem; color: var(--primary); font-family: var(--font-mono); margin: 4px 0;">Hold &ge; 100,000 $WERR</div>
+          <p style="font-size: 0.82rem; color: #cbd5e1; margin: 0;">+50% burst capacity (zero 429 errors), sub-20ms RAMDisk feed, and <strong>15% permanent discount</strong> on monthly invoices.</p>
+        </div>
+        <div style="background: rgba(16, 185, 129, 0.06); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 14px;">
+          <div style="font-family: var(--font-mono); font-size: 1rem; font-weight: 700; color: #fff;">⚡ Alpha Liquidator</div>
+          <div style="font-size: 0.8rem; color: var(--accent); font-family: var(--font-mono); margin: 4px 0;">Hold &ge; 500,000 $WERR (Bekirhan Tier)</div>
+          <p style="font-size: 0.82rem; color: #cbd5e1; margin: 0;"><strong>Mempool-First 100ms Priority Broadcast</strong>, sub-5ms raw WebSocket, <strong>35% permanent discount</strong> OR 100% free Burn-to-Renew.</p>
+        </div>
+        <div style="background: rgba(168, 85, 247, 0.06); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 8px; padding: 14px;">
+          <div style="font-family: var(--font-mono); font-size: 1rem; font-weight: 700; color: #fff;">🏛️ Consortium Node</div>
+          <div style="font-size: 0.8rem; color: #c084fc; font-family: var(--font-mono); margin: 4px 0;">Hold &ge; 2,500,000 $WERR</div>
+          <p style="font-size: 0.82rem; color: #cbd5e1; margin: 0;">Direct bare-metal Reth validator RPC tunnel, zero-tax profit share, and governance veto rights on oracle parameters.</p>
         </div>
       </div>
     </div>
