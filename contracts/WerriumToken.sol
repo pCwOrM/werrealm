@@ -2,18 +2,23 @@
 pragma solidity ^0.8.20;
 
 /**
- * @title Werralem Token ($WERR)
- * @dev The native utility and governance token of the Werralem Biomimetic Sovereign Brain-Chain.
+ * @title Werrium Token ($WERR)
+ * @dev The native utility and gas currency of Werrealm — The Biomimetic Sovereign Brain-Chain.
  *
  * Total Supply: 1,000,000,000 WERR (Fixed, Non-inflationary)
  * Decimals: 18
  * Chain: Base (Layer 2)
  *
- * Core Features:
+ * Core Ecosystem Components:
+ * - Werrealm: The sovereign cognitive realm & consensus network
+ * - Werrium ($WERR): The protocol currency & staking collateral
+ * - Werron: The neuromorphic cognitive unit (Drosophila connectome synapses)
+ * - Werror Engine: The orbital error dynamics & Byzantine fault immunity core
+ *
+ * Features:
  * - ERC-20 Standard Compliant
- * - EIP-2612 Permit for gasless signatures and frictionless UX
+ * - EIP-2612 Permit for gasless signatures
  * - Native burn & burnFrom for Metabolic ATP conversion & API Priority Bidding
- * - Formally verified invariant constraints
  */
 
 interface IERC20 {
@@ -42,8 +47,8 @@ interface IERC20Permit {
     function DOMAIN_SEPARATOR() external view returns (bytes32);
 }
 
-contract WerrToken is IERC20, IERC20Permit {
-    string public constant name = "Werralem";
+contract WerriumToken is IERC20, IERC20Permit {
+    string public constant name = "Werrium";
     string public constant symbol = "WERR";
     uint8 public constant decimals = 18;
 
