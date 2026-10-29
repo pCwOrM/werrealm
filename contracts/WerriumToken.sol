@@ -64,9 +64,10 @@ contract WerriumToken is IERC20, IERC20Permit {
     bytes32 public constant PERMIT_TYPEHASH =
         keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
 
-    // Metabolic Events
+    // Metabolic & AI Reflex Events
     event Burn(address indexed burner, uint256 value);
     event ATPBurnInitiated(address indexed caller, uint256 werrAmount, uint256 atpEquivalent);
+    event AnswerrReflexBurned(address indexed caller, uint256 werrAmount, bytes32 indexed queryHash);
 
     // Initial Treasury / Deployer
     address public immutable genesisTreasury;
@@ -150,6 +151,17 @@ contract WerriumToken is IERC20, IERC20Permit {
         _burn(msg.sender, value);
         atpGenerated = value / 10**9;
         emit ATPBurnInitiated(msg.sender, value, atpGenerated);
+    }
+
+    /**
+     * @notice Answerr AI Reflex Burn: Burns WERR on-chain for 0-VRAM System-1 decision queries.
+     * @param value Amount of WERR burned for compute quota.
+     * @param queryHash Hash of the Answerr AI reflex task.
+     */
+    function burnForReflex(uint256 value, bytes32 queryHash) external returns (bool) {
+        _burn(msg.sender, value);
+        emit AnswerrReflexBurned(msg.sender, value, queryHash);
+        return true;
     }
 
     // EIP-2612 Permit Implementation

@@ -66,9 +66,10 @@ $WERR token, saf spekülatif bir meme coin değildir. Değeri doğrudan gerçek 
 
 ```mermaid
 flowchart TD
-    subgraph REVENUE["Ticari Gelir Akışları (Nakit Girişi)"]
-        DaaS["Radar B2B Kurumsal API Abonelikleri\n($500 - $3,000/ay USDC)"]
-        MEV["Werracle Harvester Zincir İçi Tasfiye Kârları\n(Arbitrum & Base ETH Gelirleri)"]
+    subgraph REVENUE["Ticari Gelir Akışları (Çift-Kanatlı Nakit Girişi)"]
+        DaaS["1. Radar B2B Kurumsal API Abonelikleri\n($500 - $3,000/ay USDC — MEV & Quant)"]
+        ANSWERR_REV["2. Answerr Reflex API AI Tüketimi\n(Sorgu Başı Mikro-Ödeme & AI Ajan Kredisi)"]
+        MEV["3. Werracle Harvester Zincir İçi Tasfiye Kârları\n(Arbitrum & Base ETH Gelirleri)"]
     end
 
     subgraph VAULT["Werralem Gelir Sözleşmesi (Smart Treasury)"]
@@ -76,12 +77,13 @@ flowchart TD
         BURN["Kalıcı Yakım (Burn to Dead Address)"]
     end
 
-    subgraph UTILITY["Token İçi Organik Talep"]
-        STAKE["API Erişimi İçin Token Staking\n(Dolaşımdaki Arzı Kilitler)"]
-        ATP["Priority Bidding İçin $WERR Yakımı\n(ATP Burn)"]
+    subgraph UTILITY["Token İçi Organik Talep (Dual-Engine Demand)"]
+        STAKE["Radar & Answerr İçin Token Staking\n(Dolaşımdaki Arzı Kilitler)"]
+        ATP["Priority Bidding & AI Refleks İçin $WERR Yakımı\n(ATP Burn & Burn-to-Infer)"]
     end
 
     DaaS --> VAULT
+    ANSWERR_REV --> VAULT
     MEV --> VAULT
     VAULT --> BUYBACK
     BUYBACK --> BURN
@@ -91,11 +93,11 @@ flowchart TD
 ```
 
 1. **Geri Alım ve Yakım (Buyback & Burn):**
-   - Radar API'sinden elde edilen kurumsal abonelik gelirlerinin (USDC) ve Harvester tasfiye kârlarının %40'ı, haftalık periyotlarla otomatik olarak piyasadan `$WERR` satın alıp yakar.
+   - Radar API abonelikleri, Answerr API karar sorguları ve Harvester tasfiye kârlarının %40'ı, haftalık periyotlarla otomatik olarak piyasadan `$WERR` satın alıp yakar.
 2. **Kullandıkça Tut (Stake-to-Access):**
-   - Kurumsal fonlar ve botlar (Bekirhan vb.) API'nin 3,000 req/min'lik Institutional Tier'ına erişebilmek için cüzdanlarında asgari 100,000 $WERR stake etmek zorundadır. Bu durum kurumsal müşteri sayısı arttıkça serbest dolaşımdaki arzı piyasadan çeker.
-3. **Agresif Öncelik Yakımı (ATP Burn):**
-   - Canlı yarışlarda öne geçmek isteyen botlar, gaz önceliği satın almak için $WERR yakarak Werralim'in hücresel ATP'sini tüketir.
+   - Hem Radar DaaS kurumsal müşterileri (DeFi botları) hem de Answerr API kurumsal geliştiricileri (AI ajanları, oyun motorları) yüksek hızlı kota için cüzdanlarında $WERR stake etmek zorundadır.
+3. **Agresif Öncelik ve Refleks Yakımı (Burn-to-Strike & Burn-to-Infer):**
+   - MEV botları öne geçmek için $WERR yakarken, AI geliştiricileri de 0-VRAM anlık karar motorunu çalıştırmak için on-chain $WERR yakar.
 
 ---
 
