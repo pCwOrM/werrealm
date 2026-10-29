@@ -393,19 +393,27 @@
         <a href="https://radar.werracle.com/docs" target="_blank" class="btn btn-secondary">
           Interactive API Sandbox
         </a>
-        <a href="https://sepolia.etherscan.io/address/0xe6ecc9575B4D52642c55FCf64E8E2d3baa6e6EF7" target="_blank" class="btn btn-secondary" style="border-color: var(--primary); color: var(--primary);">
-          📜 Verified $WERR Token
+        <a href="https://basescan.org/address/0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2" target="_blank" class="btn btn-secondary" style="border-color: var(--primary); color: var(--primary);">
+          🔵 Basescan Verified ($WERR)
         </a>
       </div>
 
       <!-- Live Contract Verification Banner -->
-      <div style="margin-top: 24px; background: rgba(0, 242, 254, 0.06); border: 1px solid rgba(0, 242, 254, 0.25); border-radius: 12px; padding: 12px 20px; display: inline-flex; align-items: center; gap: 12px; font-family: var(--font-mono); font-size: 0.85rem; max-width: 100%; word-break: break-all;">
-        <span style="color: var(--success); font-weight: bold;">● LIVE ON-CHAIN:</span>
-        <span style="color: var(--text-muted);">Contract:</span>
-        <a href="https://sepolia.etherscan.io/address/0xe6ecc9575B4D52642c55FCf64E8E2d3baa6e6EF7" target="_blank" style="color: var(--primary); text-decoration: underline;">
-          0xe6ecc9575B4D52642c55FCf64E8E2d3baa6e6EF7
-        </a>
-        <span style="color: var(--text-muted);">| 1,000,000,000 $WERR Minted to Founder Treasury</span>
+      <div style="margin-top: 24px; background: rgba(0, 242, 254, 0.06); border: 1px solid rgba(0, 242, 254, 0.25); border-radius: 12px; padding: 14px 20px; display: inline-flex; flex-direction: column; gap: 8px; font-family: var(--font-mono); font-size: 0.85rem; max-width: 100%; word-break: break-all; text-align: left;">
+        <div>
+          <span style="color: var(--success); font-weight: bold;">● BASE L2 MAINNET LIVE:</span>
+          <span style="color: var(--text-muted);">Contract:</span>
+          <a href="https://basescan.org/address/0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2" target="_blank" style="color: var(--primary); text-decoration: underline; font-weight: bold;">
+            0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2
+          </a>
+          <span style="color: var(--text-muted);">| 1,000,000,000 $WERR Genesis Treasury</span>
+        </div>
+        <div style="font-size: 0.78rem; color: var(--text-muted); border-top: 1px dashed rgba(255, 255, 255, 0.1); padding-top: 6px;">
+          <span>Ethereum Sepolia Testnet Contract:</span>
+          <a href="https://sepolia.etherscan.io/address/0xe6ecc9575B4D52642c55FCf64E8E2d3baa6e6EF7" target="_blank" style="color: var(--secondary); text-decoration: underline;">
+            0xe6ecc9575B4D52642c55FCf64E8E2d3baa6e6EF7
+          </a>
+        </div>
       </div>
 
       <!-- Live Telemetry Ribbon -->
@@ -519,28 +527,28 @@
   <!-- Multi-Server Distributed Infrastructure -->
   <section class="container" id="infrastructure">
     <div class="infra-box">
-      <h3 style="font-size: 1.6rem; color: #fff; margin-bottom: 8px;">Multi-Server Distributed Infrastructure</h3>
+      <h3 style="font-size: 1.6rem; color: #fff; margin-bottom: 8px;">Tiered DePIN Infrastructure & Node Topology</h3>
       <p style="color: var(--text-muted); font-size: 0.95rem;">
-        Geographically resilient bare-metal cluster powering the genesis and validator topology of Werrealm:
+        Geographically resilient bare-metal cluster powering the genesis consensus, neural state replication, and low-latency API delivery of Werrealm:
       </p>
 
       <div class="infra-grid">
         <div class="server-card">
-          <h4>1. pcworm-root (Genesis Core)</h4>
-          <p><strong>Hardware:</strong> 40 vCPUs, 256 GB RAM, 5.9 TB Storage.</p>
-          <p><strong>Role:</strong> Primary consensus engine, Werralim living cell (8,192 colonies), local Reth L1 IPC node, and core harvester.</p>
+          <h4>1. Tier-1 Genesis Validator Node (Bare-Metal Core)</h4>
+          <p><strong>Hardware Architecture:</strong> 40 vCPUs, 256 GB RAM, 5.9 TB Tiered Storage (NVMe + Archival Vault).</p>
+          <p><strong>Protocol Role:</strong> Primary bio-synthetic consensus engine, Werralim living cell synthesis (8,192 colonies), local execution node IPC, and low-latency state processing.</p>
         </div>
 
         <div class="server-card">
-          <h4>2. mechsrv (Sentry & Public Gateway)</h4>
-          <p><strong>Hardware:</strong> Intel Xeon E5, 24 GB RAM, 197 GB SSD.</p>
-          <p><strong>Role:</strong> Independent sentry validator, public RPC node replica, and distributed B2B API load balancer.</p>
+          <h4>2. Tier-2 Sentry & State Replicator (Defense Node)</h4>
+          <p><strong>Hardware Architecture:</strong> Dedicated Enterprise Xeon Environment, High-IOPS SSD Storage.</p>
+          <p><strong>Protocol Role:</strong> Distributed sentry validator node, Byzantine consensus telemetry mirroring, and failover query router.</p>
         </div>
 
         <div class="server-card">
-          <h4>3. itouchsystems (Portal & Explorer)</h4>
-          <p><strong>Hardware:</strong> Secure Hosting & Portal Infrastructure.</p>
-          <p><strong>Role:</strong> Corporate portal, block explorer web host, and community onboarding services.</p>
+          <h4>3. Tier-3 Distributed Anycast Edge Gateway (Global Edge)</h4>
+          <p><strong>Hardware Architecture:</strong> Geo-Distributed Edge Cluster, Cloudflare Anycast with Universal DDOS Mitigation.</p>
+          <p><strong>Protocol Role:</strong> High-availability developer portal, sub-millisecond REST/WebSocket ingress, and ecosystem documentation gateway.</p>
         </div>
       </div>
     </div>

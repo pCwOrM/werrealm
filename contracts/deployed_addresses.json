@@ -1,0 +1,20 @@
+{
+  "eth_sepolia": {
+    "contract": "WerriumToken",
+    "symbol": "WERR",
+    "address": "0xe6ecc9575B4D52642c55FCf64E8E2d3baa6e6EF7",
+    "treasury": "0x803a439fa8F7cf078302b51111Ae003b5221FC19",
+    "tx_hash": "7f4acd8f6e91e2d8af1a0b0ca2f9a5825f4e86cd752374b2f26458d1b4620d05",
+    "timestamp": 1793241084,
+    "explorer": "https://sepolia.etherscan.io/address/0xe6ecc9575B4D52642c55FCf64E8E2d3baa6e6EF7"
+  },
+  "base_mainnet": {
+    "contract": "WerriumToken",
+    "symbol": "WERR",
+    "address": "0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2",
+    "treasury": "0x803a439fa8F7cf078302b51111Ae003b5221FC19",
+    "tx_hash": "49242804ec9ed65b123f869252f550c07fbe10e2ce2e921b80566531bd62a68d",
+    "timestamp": 1793241894,
+    "explorer": "https://basescan.org/address/0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2"
+  }
+}
