@@ -440,12 +440,15 @@
               0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2
             </a>
           </div>
-          <div class="btn-action-row" style="display: flex; gap: 8px;">
+          <div class="btn-action-row" style="display: flex; gap: 8px; flex-wrap: wrap;">
             <button onclick="copyContractAddress(this)" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; padding: 6px 14px; border-radius: 6px; font-family: var(--font-mono); font-size: 0.8rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;">
               📋 Copy Address
             </button>
             <button onclick="addWERRToMetaMask()" style="background: linear-gradient(135deg, rgba(246, 133, 27, 0.2), rgba(246, 133, 27, 0.4)); border: 1px solid #f6851b; color: #fff; padding: 6px 14px; border-radius: 6px; font-family: var(--font-mono); font-size: 0.8rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;">
               🦊 Add to MetaMask
+            </button>
+            <button onclick="addWERRToRabby()" style="background: linear-gradient(135deg, rgba(134, 151, 246, 0.25), rgba(112, 132, 245, 0.45)); border: 1px solid #8697f6; color: #fff; padding: 6px 14px; border-radius: 6px; font-family: var(--font-mono); font-size: 0.8rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;">
+              🐰 Add to Rabby
             </button>
           </div>
         </div>
@@ -700,10 +703,91 @@
   </footer>
 
   <script>
-    async function addWERRToMetaMask() {
-      if (typeof window.ethereum !== 'undefined') {
+    async function getProvider(isRabbyTarget) {
+      if (isRabbyTarget) {
+        if (typeof window.rabby !== 'undefined') return window.rabby;
+        if (typeof window.ethereum !== 'undefined') {
+          if (window.ethereum.isRabby) return window.ethereum;
+          if (Array.isArray(window.ethereum.providers)) {
+            const found = window.ethereum.providers.find(p => p.isRabby);
+            if (found) return found;
+          }
+        }
+        return window.ethereum;
+      } else {
+        if (typeof window.ethereum !== 'undefined') {
+          if (Array.isArray(window.ethereum.providers)) {
+            const found = window.ethereum.providers.find(p => p.isMetaMask && !p.isRabby);
+            if (found) return found;
+          }
+          if (window.ethereum.isMetaMask) return window.ethereum;
+          return window.ethereum;
+        }
+        return null;
+      }
+    }
+
+    async function ensureBaseNetwork(provider) {
+      try {
+        await provider.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: '0x2105' }], // 8453 (Base Mainnet)
+        });
+      } catch (switchError) {
+        // If Base is not added yet, attempt to add it (EIP-3085)
+        if (switchError.code === 4902 || switchError.message?.includes('Unrecognized chain')) {
+          try {
+            await provider.request({
+              method: 'wallet_addEthereumChain',
+              params: [{
+                chainId: '0x2105',
+                chainName: 'Base Mainnet',
+                nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+                rpcUrls: ['https://mainnet.base.org'],
+                blockExplorerUrls: ['https://basescan.org'],
+              }],
+            });
+          } catch (addError) {
+            console.warn('Could not add Base network:', addError);
+          }
+        }
+      }
+    }
+
+    async function addWERRToRabby() {
+      const provider = await getProvider(true);
+      if (provider) {
         try {
-          const wasAdded = await window.ethereum.request({
+          await ensureBaseNetwork(provider);
+          const wasAdded = await provider.request({
+            method: 'wallet_watchAsset',
+            params: {
+              type: 'ERC20',
+              options: {
+                address: '0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2',
+                symbol: 'WERR',
+                decimals: 18,
+                image: 'https://werrealm.network/favicon.svg'
+              },
+            },
+          });
+          if (wasAdded) {
+            alert('Werrium ($WERR) successfully added to Rabby Wallet!');
+          }
+        } catch (error) {
+          console.error('Rabby add token error:', error);
+        }
+      } else {
+        alert('Rabby Wallet tespit edilemedi! Tarayıcınızda Rabby Wallet uzantısının yüklü olduğundan emin olun (https://rabby.io).');
+      }
+    }
+
+    async function addWERRToMetaMask() {
+      const provider = await getProvider(false);
+      if (provider) {
+        try {
+          await ensureBaseNetwork(provider);
+          const wasAdded = await provider.request({
             method: 'wallet_watchAsset',
             params: {
               type: 'ERC20',
@@ -719,7 +803,7 @@
             alert('Werrium ($WERR) successfully added to your MetaMask!');
           }
         } catch (error) {
-          console.error(error);
+          console.error('MetaMask add token error:', error);
         }
       } else {
         alert('MetaMask not detected! If on mobile, please open https://werrealm.network inside the MetaMask app browser.');
