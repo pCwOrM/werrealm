@@ -25,12 +25,28 @@ NETWORKS = {
         "chain_id": 84532,
         "explorer": "https://sepolia.basescan.org"
     },
+    "eth_sepolia": {
+        "rpc": "https://ethereum-sepolia-rpc.publicnode.com",
+        "chain_id": 11155111,
+        "explorer": "https://sepolia.etherscan.io"
+    },
     "base_mainnet": {
         "rpc": "https://mainnet.base.org",
         "chain_id": 8453,
         "explorer": "https://basescan.org"
     }
 }
+
+DEFAULT_USER_TREASURY = "0x803a439fa8F7cf078302b51111Ae003b5221FC19"
+
+def get_server_worker_account():
+    """Werracle sunucu içi güvenli şifreli keystore'dan işçi hesabını yükler."""
+    try:
+        sys.path.append("/opt/apps/werracle/blockchain_vault")
+        import werracle_keyloader
+        return werracle_keyloader.load_worker_account()
+    except Exception as e:
+        return None
 
 def deploy(network_name: str = "base_sepolia", private_key: str = None, treasury_address: str = None):
     net = NETWORKS.get(network_name)
@@ -55,21 +71,29 @@ def deploy(network_name: str = "base_sepolia", private_key: str = None, treasury
     abi = artifact["abi"]
     bytecode = artifact["bytecode"]
 
-    if not private_key:
-        print("[!] Özel anahtar belirtilmedi. Simülasyon modu aktif.")
+    account = None
+    if private_key:
+        account = Account.from_key(private_key)
+    else:
+        # Sunucu keystore dene
+        account = get_server_worker_account()
+
+    treasury = treasury_address or DEFAULT_USER_TREASURY
+
+    if not account:
+        print("[!] Özel anahtar belirtilmedi ve sunucu keystore bulunamadı. Simülasyon modu aktif.")
         print(f"[+] Sözleşme Bytecode Doğrulandı: {len(bytecode)//2} bytes")
-        print(f"[+] Dağıtıma Hazır Constructor Parametresi: {treasury_address or '0xb563DE1D0dD3431486b313F90f2D9f53bd8Ef96d'}")
+        print(f"[+] Dağıtıma Hazır Constructor Parametresi (Treasury): {treasury}")
         return
 
-    account = Account.from_key(private_key)
-    treasury = treasury_address or account.address
-    print(f"[*] Dağıtıcı Cüzdan: {account.address}")
-    print(f"[*] İlk Hazine Cüzdanı (1B $WERR): {treasury}")
+    print(f"[*] Dağıtıcı (İşçi) Cüzdan: {account.address}")
+    print(f"[*] Hazine Cüzdanı (Tüm 1B $WERR Buraya Mint Edilecek): {treasury}")
 
     balance = w3.eth.get_balance(account.address)
-    print(f"[*] Cüzdan Bakiyesi: {w3.from_wei(balance, 'ether')} ETH")
+    print(f"[*] İşçi Cüzdan Bakiyesi: {w3.from_wei(balance, 'ether')} ETH")
     if balance == 0:
-        raise ValueError("Cüzdanda gas için yetersiz bakiye! Lütfen Base Sepolia musluğundan (faucet) test ETH alın.")
+        raise ValueError(f"İşçi cüzdanında ({account.address}) gas için yetersiz bakiye! Lütfen {network_name} üzerinde gas transferi yapın.")
+
 
     contract = w3.eth.contract(abi=abi, bytecode=bytecode)
 
@@ -79,17 +103,26 @@ def deploy(network_name: str = "base_sepolia", private_key: str = None, treasury
     max_fee = base_fee * 2 + priority_fee
 
     print("[*] Dağıtım işlemi oluşturuluyor...")
+    try:
+        est_gas = contract.constructor(treasury).estimate_gas({'from': account.address})
+        gas_limit = int(est_gas * 1.25)
+        print(f"[*] Tahmini Gas: {est_gas} -> Ayarlanan Gas Limiti: {gas_limit}")
+    except Exception as e:
+        gas_limit = 7500000
+        print(f"[!] Gas tahmini yapilamadi ({e}), varsayilan 7.5M kullaniliyor.")
+
     construct_txn = contract.constructor(treasury).build_transaction({
         'from': account.address,
         'nonce': nonce,
-        'gas': 3500000,
+        'gas': gas_limit,
         'maxFeePerGas': max_fee,
         'maxPriorityFeePerGas': priority_fee,
         'chainId': net['chain_id']
     })
 
     signed = account.sign_transaction(construct_txn)
-    tx_hash = w3.eth.send_raw_transaction(signed.rawTransaction)
+    raw_tx = getattr(signed, "raw_transaction", None) or getattr(signed, "rawTransaction")
+    tx_hash = w3.eth.send_raw_transaction(raw_tx)
     print(f"[+] İşlem Gönderildi: {tx_hash.hex()}")
     print(f"[*] Onay bekleniyor...")
 
