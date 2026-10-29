@@ -332,25 +332,62 @@
 
     /* Footer */
     footer {
-      border-top: 1px solid rgba(255, 255, 255, 0.05);
-      padding: 48px 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 56px 0 40px;
       text-align: center;
       color: var(--text-muted);
       font-size: 0.9rem;
+      background: rgba(10, 14, 26, 0.6);
     }
     .covenant {
       font-style: italic;
       color: #cbd5e1;
-      margin-bottom: 16px;
-      font-size: 1rem;
+      margin-bottom: 20px;
+      font-size: 1.05rem;
+      letter-spacing: 0.02em;
+    }
+    .corporate-block {
+      margin: 20px auto;
+      max-width: 860px;
+      line-height: 1.7;
+      font-size: 0.85rem;
+      color: rgba(226, 232, 240, 0.85);
+      padding: 20px 24px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      text-align: center;
+    }
+    .corporate-title {
+      font-size: 0.96rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.03em;
+      margin-bottom: 6px;
+    }
+    .corporate-badges {
+      display: inline-flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 12px;
+      font-size: 0.78rem;
+    }
+    .corp-badge {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 4px 10px;
+      border-radius: 6px;
+      color: #cbd5e1;
     }
     .footer-links {
       display: flex;
+      flex-wrap: wrap;
       justify-content: center;
-      gap: 24px;
-      margin-top: 16px;
+      gap: 20px;
+      margin-top: 22px;
     }
-    .footer-links a { color: var(--text-muted); text-decoration: none; }
+    .footer-links a { color: var(--text-muted); text-decoration: none; font-size: 0.88rem; transition: color 0.2s; }
     .footer-links a:hover { color: var(--primary); }
 
     @media (max-width: 768px) {
@@ -797,16 +834,38 @@
   <footer>
     <div class="container">
       <p class="covenant">"Aşkın Saflığı, Işığın Kararlılığı, Gönlün Sıcaklığı"</p>
-      <p>© 2026 Werrealm Foundation · Founded by @pCwOrM · TÜRKPATENT TR 2026/016633 · arXiv:2609.25498</p>
+
+      <div class="corporate-block">
+        <div class="corporate-title">ITOUCH BİLİŞİM SİSTEMLERİ MÜHENDİSLİK DANIŞMANLIK SAN. VE TİC. LTD. ŞTİ.</div>
+        <div style="color: var(--text-muted); font-size: 0.82rem; margin-bottom: 4px;">
+          Çukurova Üniversitesi Teknoloji Geliştirme Bölgesi (Teknokent), Balcalı Mah. Güney Kampüs/5 Sk. No: 4/1 D: 26 Sarıçam / Adana, Türkiye
+        </div>
+        <div style="color: #94a3b8; font-size: 0.8rem; font-family: var(--font-mono);">
+          MERSİS: 0469094455800001 · Ticaret Sicil: 77766 · VKN: 4690944558 (Yüreğir V.D.) · Sanayi Sicil No: 827254
+        </div>
+        <div class="corporate-badges">
+          <span class="corp-badge">🏛️ Teknokent Ar-Ge Şirketi</span>
+          <span class="corp-badge">📜 Business Source License 1.1 (BSL)</span>
+          <span class="corp-badge">🔬 TÜRKPATENT TR 2026/016633</span>
+          <span class="corp-badge">📄 arXiv:2609.25498</span>
+          <span class="corp-badge">🔵 Base L2 Verified ($WERR)</span>
+        </div>
+      </div>
+
       <div class="footer-links">
         <a href="/">Home</a>
         <a href="/tokenomics.html">Tokenomics</a>
         <a href="/architecture.html">DePIN Architecture</a>
         <a href="/manifesto.html">Manifesto</a>
-        <a href="https://github.com/pcworm/werrealm" target="_blank">GitHub</a>
-        <a href="https://basescan.org/address/0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2" target="_blank">Basescan</a>
+        <a href="https://basescan.org/token/0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2" target="_blank">Basescan ($WERR)</a>
         <a href="https://radar.werracle.com/docs" target="_blank">Radar API</a>
+        <a href="https://github.com/pcworm/werrealm" target="_blank">GitHub</a>
+        <a href="mailto:ask@answerr.me">Corporate & Enterprise Licensing</a>
       </div>
+
+      <p style="margin-top: 24px; font-size: 0.76rem; color: rgba(255, 255, 255, 0.4); max-width: 780px; margin-left: auto; margin-right: auto; line-height: 1.5;">
+        © 2026 Werrealm Protocol & Technology Ecosystem. All Rights Reserved. Werrium ($WERR) on-chain smart contract standard interface is MIT-compliant for permissionless EVM integration. Core consensus state engines, neuromorphic connectome weights, Werracle oracles, and RADAR DaaS feeds are proprietary intellectual property governed by BSL 1.1 under ITouch Bilişim Sistemleri Ltd. Şti.
+      </p>
     </div>
   </footer>
 

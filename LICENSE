@@ -1,0 +1,66 @@
+Business Source License 1.1
+
+Parameters:
+
+Licensor:
+  ITOUCH BİLİŞİM SİSTEMLERİ MÜHENDİSLİK DANIŞMANLIK SANAYİ VE TİCARET LİMİTED ŞİRKETİ
+  (MERSİS: 0469094455800001, Ticaret Sicil No: 77766, Tax ID / VKN: 4690944558, Yüreğir V.D., Sanayi Sicil No: 827254 - Çukurova Üniversitesi Teknokent, Adana, Türkiye)
+
+Inventors & Scientific Co-Authors:
+  Volkan Dağlı (Anadolu University)
+  Dr. Zerrin Dağlı (Mersin University)
+  Dağhan Dağlı (Toros University)
+
+Chain of Title & Intellectual Property Assignment:
+  The underlying scientific discoveries, mathematical algorithms, architectures, and patent applications 
+  embodied in this work (including TÜRKPATENT TR 2026/016633, arXiv:2609.25498, and Werror Engine orbital dynamics)
+  were originally conceived and authored personally by the Inventors & Scientific Co-Authors. 
+  By written irrevocable assignment and mutual authorization, all co-authors have consolidated and assigned the 
+  complete management, administrative representation, and IP conveyance rights to Volkan Dağlı. In turn, Volkan Dağlı 
+  has formally assigned and vested the exclusive worldwide licensing, operational, commercialization, and enforcement 
+  rights in ITouch Bilişim Sistemleri Ltd. Şti. ("ITouch Systems").
+
+  Consequently, ITouch Systems is the sole and exclusive legal Licensor empowered to execute commercial agreements, 
+  grant production enterprise licenses, and administer all rights pertaining to the Licensed Work, publications, and patents.
+
+Licensed Work:
+  Werrealm: The Biomimetic Sovereign Brain-Chain and Decentralized Intelligence Infrastructure,
+  including the Werror Engine (orbital error dynamics & Byzantine fault tolerance), 
+  Werron neuromorphic connectome consensus architecture (Drosophila full-brain connectome state transitions), 
+  Werracle decentralized oracle and harvesting networks, RADAR DaaS market telemetry engines, 
+  and all associated protocol specifications, verification suites, and node runtime implementations contained in this repository.
+
+Dual Licensing & Standard Token Exception:
+  1. Standard Token Interface (MIT):
+     The standard ERC-20 and EIP-2612 smart contract interface wrapper files located in `contracts/WerriumToken.sol` 
+     are provided under the MIT License to ensure permissionless compatibility with decentralized exchanges, 
+     custodial wallets, bridges, and EVM ecosystem tools.
+  2. Protocol Core & Telemetry (BSL 1.1):
+     All underlying consensus algorithms, neuromorphic weight distributions, node orchestrators, 
+     harvesters, and commercial API engines are strictly governed under Business Source License 1.1.
+
+Additional Use Grant:
+  1. Non-Commercial, Educational, and Academic Research Use:
+     You may run, compile, inspect, benchmark, test, study, fork, and reproduce the Licensed Work 
+     free of charge for non-commercial research, academic, educational, student collaboration, 
+     and personal evaluations. Academic citation and open-science collaboration are explicitly 
+     permitted and encouraged.
+  2. Commercial Restriction:
+     Any production use, deployment, or provision of the Licensed Work (or substantial parts thereof) 
+     as a commercial blockchain validator network, hosted software-as-a-service (SaaS), data-as-a-service (DaaS), 
+     commercial oracle, paid API, or institutional hedge fund liquidation feed—or in direct commercial competition 
+     with services offered by ITouch Bilişim Sistemleri Ltd. Şti., werrealm.network, or answerr.me—requires an 
+     express written Commercial Enterprise License from the Licensor.
+  3. Commercial Licensing Inquiries:
+     For commercial, institutional, and enterprise licensing agreements, please contact:
+     ITOUCH BİLİŞİM SİSTEMLERİ MÜHENDİSLİK DANIŞMANLIK SANAYİ VE TİCARET LİMİTED ŞİRKETİ
+     Address: Balcalı Mah. Güney Kampüs/5 Sk. No: 4/1 Daire: 26 Sarıçam / Adana, Türkiye (Çukurova Üniversitesi Teknokent)
+     MERSİS No: 0469094455800001 | Ticaret Sicil No: 77766 | Tax ID / VKN: 4690944558 (Yüreğir V.D.)
+     Sanayi Sicil No: 827254 | Trademarks: WERR™, Werrealm™, Werracle™, answerr™, WerrSoma™ (registered / pending trademarks of ITouch Systems: ITouch® No: 2018/43211, 2022/209583; TEKNOSANAT® No: 2024/169039)
+     KEP: itouchbilisim@hs01.kep.tr | Email: ask@answerr.me / info@itouch.com.tr | Web: https://werrealm.network / https://answerr.me
+
+Change Date:
+  2030-01-01
+
+Change License:
+  GPL-3.0-or-later
