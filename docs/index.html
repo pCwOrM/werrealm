@@ -16,6 +16,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 
   <style>
     :root {
@@ -353,8 +354,31 @@
     .footer-links a:hover { color: var(--primary); }
 
     @media (max-width: 768px) {
-      h1 { font-size: 2.6rem; }
-      .telemetry-ribbon { grid-template-columns: 1fr 1fr; }
+      header { padding: 12px 0; }
+      .nav-wrap { flex-direction: column; align-items: stretch; gap: 12px; }
+      .brand { justify-content: center; }
+      .nav-links {
+        display: flex;
+        overflow-x: auto;
+        white-space: nowrap;
+        gap: 12px;
+        padding: 4px 0 8px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+      .nav-links::-webkit-scrollbar { display: none; }
+      .nav-links a { font-size: 0.85rem; padding: 6px 12px; background: rgba(255, 255, 255, 0.03); border-radius: 999px; }
+      .nav-links .btn-small { background: rgba(0, 242, 254, 0.15); border-radius: 999px; }
+      
+      h1 { font-size: 2.1rem; line-height: 1.25; }
+      .hero-lead { font-size: 1rem; }
+      .cta-group { flex-direction: column; align-items: stretch; }
+      .cta-group .btn { width: 100%; justify-content: center; min-height: 48px; }
+      .telemetry-ribbon { grid-template-columns: 1fr 1fr; padding: 16px; gap: 14px; }
+      .grid-3 { grid-template-columns: 1fr !important; }
+      .infra-grid { grid-template-columns: 1fr; }
+      .btn-action-row { flex-direction: column; width: 100%; }
+      .btn-action-row button { width: 100%; justify-content: center; min-height: 44px; }
     }
   </style>
 </head>
@@ -401,20 +425,26 @@
       </div>
 
       <!-- Live Contract Verification Banner -->
-      <div style="margin-top: 24px; background: rgba(0, 242, 254, 0.06); border: 1px solid rgba(0, 242, 254, 0.25); border-radius: 12px; padding: 14px 20px; display: inline-flex; flex-direction: column; gap: 8px; font-family: var(--font-mono); font-size: 0.85rem; max-width: 100%; word-break: break-all; text-align: left;">
-        <div>
-          <span style="color: var(--success); font-weight: bold;">● BASE L2 MAINNET LIVE:</span>
-          <span style="color: var(--text-muted);">Contract:</span>
-          <a href="https://basescan.org/address/0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2" target="_blank" style="color: var(--primary); text-decoration: underline; font-weight: bold;">
-            0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2
-          </a>
-          <span style="color: var(--text-muted);">| 1,000,000,000 $WERR Genesis Treasury</span>
+      <div style="margin-top: 24px; background: rgba(0, 242, 254, 0.06); border: 1px solid rgba(0, 242, 254, 0.25); border-radius: 14px; padding: 18px 24px; display: inline-flex; flex-direction: column; gap: 12px; font-family: var(--font-mono); font-size: 0.88rem; max-width: 100%; word-break: break-all; text-align: left; box-shadow: 0 8px 32px rgba(0, 242, 254, 0.08);">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <span style="color: var(--success); font-weight: bold; margin-right: 6px;">● BASE L2 MAINNET LIVE:</span>
+            <a href="https://basescan.org/address/0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2" target="_blank" style="color: var(--primary); text-decoration: underline; font-weight: bold;">
+              0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2
+            </a>
+          </div>
+          <div class="btn-action-row" style="display: flex; gap: 8px;">
+            <button onclick="copyContractAddress(this)" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; padding: 6px 14px; border-radius: 6px; font-family: var(--font-mono); font-size: 0.8rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;">
+              📋 Copy Address
+            </button>
+            <button onclick="addWERRToMetaMask()" style="background: linear-gradient(135deg, rgba(246, 133, 27, 0.2), rgba(246, 133, 27, 0.4)); border: 1px solid #f6851b; color: #fff; padding: 6px 14px; border-radius: 6px; font-family: var(--font-mono); font-size: 0.8rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;">
+              🦊 Add to MetaMask
+            </button>
+          </div>
         </div>
-        <div style="font-size: 0.78rem; color: var(--text-muted); border-top: 1px dashed rgba(255, 255, 255, 0.1); padding-top: 6px;">
-          <span>Ethereum Sepolia Testnet Contract:</span>
-          <a href="https://sepolia.etherscan.io/address/0xe6ecc9575B4D52642c55FCf64E8E2d3baa6e6EF7" target="_blank" style="color: var(--secondary); text-decoration: underline;">
-            0xe6ecc9575B4D52642c55FCf64E8E2d3baa6e6EF7
-          </a>
+        <div style="font-size: 0.8rem; color: var(--text-muted); border-top: 1px dashed rgba(255, 255, 255, 0.1); padding-top: 8px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+          <span>1,000,000,000 $WERR Genesis Treasury Active</span>
+          <span>Sepolia Testnet: <a href="https://sepolia.etherscan.io/address/0xe6ecc9575B4D52642c55FCf64E8E2d3baa6e6EF7" target="_blank" style="color: var(--secondary); text-decoration: underline;">0xe6ecc9575...</a></span>
         </div>
       </div>
 
@@ -662,5 +692,47 @@
     </div>
   </footer>
 
+  <script>
+    async function addWERRToMetaMask() {
+      if (typeof window.ethereum !== 'undefined') {
+        try {
+          const wasAdded = await window.ethereum.request({
+            method: 'wallet_watchAsset',
+            params: {
+              type: 'ERC20',
+              options: {
+                address: '0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2',
+                symbol: 'WERR',
+                decimals: 18,
+                image: 'https://werrealm.network/favicon.svg'
+              },
+            },
+          });
+          if (wasAdded) {
+            alert('Werrium ($WERR) successfully added to your MetaMask!');
+          }
+        } catch (error) {
+          console.error(error);
+        }
+      } else {
+        alert('MetaMask not detected! If on mobile, please open https://werrealm.network inside the MetaMask app browser.');
+      }
+    }
+
+    function copyContractAddress(btn) {
+      const addr = '0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2';
+      navigator.clipboard.writeText(addr).then(() => {
+        const orig = btn.innerHTML;
+        btn.innerHTML = '✓ Copied!';
+        btn.style.borderColor = '#10b981';
+        btn.style.color = '#10b981';
+        setTimeout(() => {
+          btn.innerHTML = orig;
+          btn.style.borderColor = '';
+          btn.style.color = '';
+        }, 2200);
+      });
+    }
+  </script>
 </body>
 </html>

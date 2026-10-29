@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <style>
     :root {
       --bg: #040711;
@@ -33,7 +34,7 @@
     }
     .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
     header {
-      padding: 20px 0;
+      padding: 16px 0;
       border-bottom: 1px solid rgba(255, 255, 255, 0.08);
       backdrop-filter: blur(12px);
       position: sticky;
@@ -43,8 +44,17 @@
     }
     .nav-wrap { display: flex; justify-content: space-between; align-items: center; }
     .brand { color: #fff; font-weight: 800; font-size: 1.25rem; text-decoration: none; display: flex; align-items: center; gap: 8px; }
-    .nav-links a { color: var(--text-muted); text-decoration: none; margin-left: 20px; font-size: 0.9rem; transition: color 0.2s; }
+    .nav-links { display: flex; align-items: center; gap: 16px; }
+    .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
     .nav-links a:hover { color: var(--primary); }
+    @media (max-width: 768px) {
+      .nav-wrap { flex-direction: column; align-items: stretch; gap: 10px; }
+      .brand { justify-content: center; }
+      .nav-links { overflow-x: auto; white-space: nowrap; padding-bottom: 4px; scrollbar-width: none; }
+      .nav-links::-webkit-scrollbar { display: none; }
+      .nav-links a { font-size: 0.85rem; padding: 4px 10px; background: rgba(255,255,255,0.04); border-radius: 999px; }
+      h1 { font-size: 2.1rem; }
+    }
     .hero-doc { padding: 60px 0 30px; text-align: center; }
     .badge {
       display: inline-block;
