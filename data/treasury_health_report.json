@@ -1,15 +1,23 @@
 {
   "version": "v1.0.0-Live-RPC-Auditor",
-  "timestamp_utc": "2026-11-02T18:21:34Z",
-  "block_number": 53427170,
+  "timestamp_utc": "2026-11-02T19:45:20Z",
+  "block_number": 53429679,
   "chain_id": 8453,
   "token_contract": "0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2",
   "total_supply_werr": 1000000000.0,
   "tracked_wallets": {
+    "safe_multisig": {
+      "address": "0x7CC5fd367e210F4678Bcfca054cbe0F87291E355",
+      "label": "Werrealm Sovereign Treasury Safe (2/2 Multisig)",
+      "type": "Institutional Multi-Sig Vault (Active)",
+      "balance_wei": "0",
+      "balance_werr": 0.0,
+      "percentage_of_supply": 0.0
+    },
     "genesis_treasury": {
       "address": "0x803a439fa8F7cf078302b51111Ae003b5221FC19",
-      "label": "Werrealm Genesis Sovereign Treasury",
-      "type": "Treasury / Reserve (Safe Migration Target)",
+      "label": "Werrealm Genesis EOA Key (Migration Source)",
+      "type": "Genesis Founder EOA",
       "balance_wei": "999500000000000000000000000",
       "balance_werr": 999500000.0,
       "percentage_of_supply": 99.95
@@ -32,6 +40,8 @@
     }
   },
   "metrics": {
+    "safe_multisig_werr": 0.0,
+    "safe_multisig_pct": 0.0,
     "treasury_reserve_werr": 999500000.0,
     "treasury_reserve_pct": 99.95,
     "stakeholder_holding_werr": 500000.0,
@@ -40,8 +50,10 @@
     "total_accounted_pct": 100.0
   },
   "security_assessment": {
-    "centralization_risk": "HIGH_UNTIL_SAFE_MIGRATION",
-    "recommendation": "Migrate genesis_treasury to Safe 2/3 Multisig + WerrTreasuryTimelock.sol",
+    "centralization_risk": "READY_FOR_SAFE_FUNDING",
+    "safe_multisig_deployed": true,
+    "safe_multisig_address": "0x7CC5fd367e210F4678Bcfca054cbe0F87291E355",
+    "recommendation": "Transfer WERR allocation from genesis_treasury to safe_multisig",
     "contract_verified": true,
     "no_mint_guarantee": true
   }
