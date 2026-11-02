@@ -679,6 +679,34 @@ def check_stake_status(address: str):
     return proof
 
 
+@radar_router.get("/stake/credits", summary="Query On-Chain Metabolic ATP & Reflex Burn Credits")
+def get_metabolic_credits(address: str):
+    """
+    Returns the accumulated on-chain ATP metabolic credits and total WERR burned
+    for an address via Base L2 burn events.
+    """
+    if not address or len(address) < 42 or not address.startswith("0x"):
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Invalid EVM Address", "message": "A valid 0x hex address on Base Mainnet is required."}
+        )
+    try:
+        from services.werr_burn_watcher import WerrBurnWatcher
+    except ImportError:
+        import sys, os
+        sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+        from services.werr_burn_watcher import WerrBurnWatcher
+
+    watcher = WerrBurnWatcher()
+    credits_info = watcher.get_user_atp_balance(address)
+    return {
+        "status": "success",
+        "chain_id": 8453,
+        "token_contract": "0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2",
+        "data": credits_info
+    }
+
+
 # ==========================================
 # 2. CORE PUBLIC GOOD ENDPOINTS (FREE)
 # ==========================================
