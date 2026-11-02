@@ -1,7 +1,7 @@
 {
   "version": "v1.0.0-Live-RPC-Auditor",
-  "timestamp_utc": "2026-11-02T19:45:20Z",
-  "block_number": 53429679,
+  "timestamp_utc": "2026-11-02T20:23:53Z",
+  "block_number": 53430838,
   "chain_id": 8453,
   "token_contract": "0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2",
   "total_supply_werr": 1000000000.0,
@@ -10,17 +10,17 @@
       "address": "0x7CC5fd367e210F4678Bcfca054cbe0F87291E355",
       "label": "Werrealm Sovereign Treasury Safe (2/2 Multisig)",
       "type": "Institutional Multi-Sig Vault (Active)",
-      "balance_wei": "0",
-      "balance_werr": 0.0,
-      "percentage_of_supply": 0.0
+      "balance_wei": "949501000000000000000000000",
+      "balance_werr": 949501000.0,
+      "percentage_of_supply": 94.9501
     },
     "genesis_treasury": {
       "address": "0x803a439fa8F7cf078302b51111Ae003b5221FC19",
       "label": "Werrealm Genesis EOA Key (Migration Source)",
       "type": "Genesis Founder EOA",
-      "balance_wei": "999500000000000000000000000",
-      "balance_werr": 999500000.0,
-      "percentage_of_supply": 99.95
+      "balance_wei": "49999000000000000000000000",
+      "balance_werr": 49999000.0,
+      "percentage_of_supply": 4.9999
     },
     "bekirhan_alpha": {
       "address": "0xB89AecB2A19CFCc13EE060154A1eAbc42C94485f",
@@ -40,20 +40,20 @@
     }
   },
   "metrics": {
-    "safe_multisig_werr": 0.0,
-    "safe_multisig_pct": 0.0,
-    "treasury_reserve_werr": 999500000.0,
-    "treasury_reserve_pct": 99.95,
+    "safe_multisig_werr": 949501000.0,
+    "safe_multisig_pct": 94.9501,
+    "treasury_reserve_werr": 49999000.0,
+    "treasury_reserve_pct": 4.9999,
     "stakeholder_holding_werr": 500000.0,
     "stakeholder_holding_pct": 0.05,
     "other_circulating_werr": 0.0,
     "total_accounted_pct": 100.0
   },
   "security_assessment": {
-    "centralization_risk": "READY_FOR_SAFE_FUNDING",
+    "centralization_risk": "RESOLVED_SAFE_ACTIVE",
     "safe_multisig_deployed": true,
     "safe_multisig_address": "0x7CC5fd367e210F4678Bcfca054cbe0F87291E355",
-    "recommendation": "Transfer WERR allocation from genesis_treasury to safe_multisig",
+    "recommendation": "Treasury reserve migration complete (Safe 2/2 multisig holds >90% of supply)",
     "contract_verified": true,
     "no_mint_guarantee": true
   }
