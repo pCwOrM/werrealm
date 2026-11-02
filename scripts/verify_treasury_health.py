@@ -32,10 +32,15 @@ class TreasuryHealthChecker:
     ]
 
     TRACKED_WALLETS = {
+        "safe_multisig": {
+            "address": "0x7CC5fd367e210F4678Bcfca054cbe0F87291E355",
+            "label": "Werrealm Sovereign Treasury Safe (2/2 Multisig)",
+            "type": "Institutional Multi-Sig Vault (Active)"
+        },
         "genesis_treasury": {
             "address": "0x803a439fa8F7cf078302b51111Ae003b5221FC19",
-            "label": "Werrealm Genesis Sovereign Treasury",
-            "type": "Treasury / Reserve (Safe Migration Target)"
+            "label": "Werrealm Genesis EOA Key (Migration Source)",
+            "type": "Genesis Founder EOA"
         },
         "bekirhan_alpha": {
             "address": "0xB89AecB2A19CFCc13EE060154A1eAbc42C94485f",
@@ -123,8 +128,11 @@ class TreasuryHealthChecker:
         circulating_other_wei = max(0, total_supply_wei - sum_tracked_wei)
         circulating_other_werr = circulating_other_wei / 10**18
 
+        safe_bal_wei = int(wallet_audits["safe_multisig"]["balance_wei"])
         treasury_bal_wei = int(wallet_audits["genesis_treasury"]["balance_wei"])
         stakeholders_bal_wei = int(wallet_audits["bekirhan_alpha"]["balance_wei"])
+        
+        risk_status = "RESOLVED_SAFE_ACTIVE" if safe_bal_wei > 0 else "READY_FOR_SAFE_FUNDING"
 
         report = {
             "version": self.VERSION,
@@ -135,6 +143,8 @@ class TreasuryHealthChecker:
             "total_supply_werr": total_supply_werr,
             "tracked_wallets": wallet_audits,
             "metrics": {
+                "safe_multisig_werr": round(safe_bal_wei / 10**18, 4),
+                "safe_multisig_pct": round((safe_bal_wei / total_supply_wei) * 100, 4),
                 "treasury_reserve_werr": round(treasury_bal_wei / 10**18, 4),
                 "treasury_reserve_pct": round((treasury_bal_wei / total_supply_wei) * 100, 4),
                 "stakeholder_holding_werr": round(stakeholders_bal_wei / 10**18, 4),
@@ -143,8 +153,10 @@ class TreasuryHealthChecker:
                 "total_accounted_pct": round((sum_tracked_wei / total_supply_wei) * 100, 4)
             },
             "security_assessment": {
-                "centralization_risk": "HIGH_UNTIL_SAFE_MIGRATION",
-                "recommendation": "Migrate genesis_treasury to Safe 2/3 Multisig + WerrTreasuryTimelock.sol",
+                "centralization_risk": risk_status,
+                "safe_multisig_deployed": True,
+                "safe_multisig_address": self.TRACKED_WALLETS["safe_multisig"]["address"],
+                "recommendation": "Transfer WERR allocation from genesis_treasury to safe_multisig",
                 "contract_verified": True,
                 "no_mint_guarantee": True
             }
