@@ -133,6 +133,13 @@ class TreasuryHealthChecker:
         stakeholders_bal_wei = int(wallet_audits["bekirhan_alpha"]["balance_wei"])
         
         risk_status = "RESOLVED_SAFE_ACTIVE" if safe_bal_wei > 0 else "READY_FOR_SAFE_FUNDING"
+        safe_pct = (safe_bal_wei / total_supply_wei) * 100 if total_supply_wei else 0
+        if safe_pct >= 90:
+            rec = "Treasury reserve migration complete (Safe 2/2 multisig holds >90% of supply)"
+        elif safe_bal_wei > 0:
+            rec = "Pilot transfer complete; proceed with major treasury reserve migration"
+        else:
+            rec = "Transfer WERR allocation from genesis_treasury to safe_multisig"
 
         report = {
             "version": self.VERSION,
@@ -156,7 +163,7 @@ class TreasuryHealthChecker:
                 "centralization_risk": risk_status,
                 "safe_multisig_deployed": True,
                 "safe_multisig_address": self.TRACKED_WALLETS["safe_multisig"]["address"],
-                "recommendation": "Transfer WERR allocation from genesis_treasury to safe_multisig",
+                "recommendation": rec,
                 "contract_verified": True,
                 "no_mint_guarantee": True
             }
@@ -180,6 +187,7 @@ if __name__ == "__main__":
     print("="*60)
     print(f"- Son Blok         : {rep['block_number']:,}")
     print(f"- Toplam Arz       : {rep['total_supply_werr']:,.0f} $WERR (Sabit)")
+    print(f"- Safe Multisig    : {m['safe_multisig_werr']:,.0f} $WERR (%{m['safe_multisig_pct']}) [KILITLI]")
     print(f"- Genesis Hazine   : {m['treasury_reserve_werr']:,.0f} $WERR (%{m['treasury_reserve_pct']})")
     print(f"- Alpha Paydas     : {m['stakeholder_holding_werr']:,.0f} $WERR (%{m['stakeholder_holding_pct']})")
     print(f"- Diger / Dolasim  : {m['other_circulating_werr']:,.4f} $WERR")
