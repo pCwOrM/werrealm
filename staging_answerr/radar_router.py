@@ -707,6 +707,24 @@ def get_metabolic_credits(address: str):
     }
 
 
+@radar_router.get("/treasury/health", summary="Live On-Chain Treasury & Supply Health Audit")
+def get_treasury_health():
+    """
+    Returns live Base L2 Mainnet on-chain audit of Werrium ($WERR) token supply,
+    reserve wallets, circulating vs non-circulating ratios, and security recommendations.
+    """
+    try:
+        from scripts.verify_treasury_health import TreasuryHealthChecker
+    except ImportError:
+        import sys, os
+        sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+        from scripts.verify_treasury_health import TreasuryHealthChecker
+
+    checker = TreasuryHealthChecker()
+    audit_data = checker.audit_treasury()
+    return audit_data
+
+
 # ==========================================
 # 2. CORE PUBLIC GOOD ENDPOINTS (FREE)
 # ==========================================
