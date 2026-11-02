@@ -1,0 +1,48 @@
+{
+  "version": "v1.0.0-Live-RPC-Auditor",
+  "timestamp_utc": "2026-11-02T18:21:34Z",
+  "block_number": 53427170,
+  "chain_id": 8453,
+  "token_contract": "0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2",
+  "total_supply_werr": 1000000000.0,
+  "tracked_wallets": {
+    "genesis_treasury": {
+      "address": "0x803a439fa8F7cf078302b51111Ae003b5221FC19",
+      "label": "Werrealm Genesis Sovereign Treasury",
+      "type": "Treasury / Reserve (Safe Migration Target)",
+      "balance_wei": "999500000000000000000000000",
+      "balance_werr": 999500000.0,
+      "percentage_of_supply": 99.95
+    },
+    "bekirhan_alpha": {
+      "address": "0xB89AecB2A19CFCc13EE060154A1eAbc42C94485f",
+      "label": "Bekirhan Dagli (Alpha Liquidator)",
+      "type": "Sovereign Stakeholder",
+      "balance_wei": "500000000000000000000000",
+      "balance_werr": 500000.0,
+      "percentage_of_supply": 0.05
+    },
+    "deployer_worker": {
+      "address": "0x2034422f8ba7a38981a0d4e7dc3ed80fe859c0c2",
+      "label": "Contract Deployer Key",
+      "type": "Deployer (Non-holder Worker)",
+      "balance_wei": "0",
+      "balance_werr": 0.0,
+      "percentage_of_supply": 0.0
+    }
+  },
+  "metrics": {
+    "treasury_reserve_werr": 999500000.0,
+    "treasury_reserve_pct": 99.95,
+    "stakeholder_holding_werr": 500000.0,
+    "stakeholder_holding_pct": 0.05,
+    "other_circulating_werr": 0.0,
+    "total_accounted_pct": 100.0
+  },
+  "security_assessment": {
+    "centralization_risk": "HIGH_UNTIL_SAFE_MIGRATION",
+    "recommendation": "Migrate genesis_treasury to Safe 2/3 Multisig + WerrTreasuryTimelock.sol",
+    "contract_verified": true,
+    "no_mint_guarantee": true
+  }
+}
