@@ -1,0 +1,24 @@
+[Unit]
+Description=Werrealm On-Chain ATP & Reflex Burn Watcher Daemon
+After=network.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/apps/werrealm
+ExecStart=/usr/bin/python3 /opt/apps/werrealm/services/werr_burn_watcher.py --daemon --interval 12
+Restart=always
+RestartSec=10
+TimeoutStopSec=15
+StandardOutput=journal
+StandardError=journal
+Environment=PYTHONUNBUFFERED=1
+Environment=WERRACLE_DB_PATH=/var/lib/werracle-health/werracle_api_keys.db
+
+# Hardening / Isolation Options
+LimitNOFILE=65535
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,109 @@
+{
+  "usdc_deposit_address": "0x4945ef6e124eea2176ddf050b33db42b0ae8c7f7",
+  "usdc_contract_base": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+  "network": "base_mainnet",
+  "chain_id": 8453,
+  "base_rpcs": [
+    "https://mainnet.base.org",
+    "https://base-rpc.publicnode.com"
+  ],
+  "pricing": {
+    "developer": {
+      "name": "Developer & Algorithmic Builder",
+      "amount_usdc": 99.0,
+      "duration_days": 30,
+      "rate_limit_per_min": 300,
+      "quota_decisions": 250000,
+      "features": [
+        "250.000 Karar / Sorgu Aylık Kota (300 req/dakika hız sınırı)",
+        "Morpho Blue & Aave v3 Canlı Pozisyonlar (/v1/radar/hot-positions)",
+        "Chainlink SVR Solver Marj & Teklif Analitiği (/v1/radar/solvers)",
+        "Standart 50ms REST API Gateway Erişimi",
+        "Resmi e-Arşiv Uyumlu Onaylı PDF Ticari Fatura (%0 KDV)"
+      ],
+      "amount_try_net": 4100.0,
+      "amount_try_vat": 0.0,
+      "amount_try_total": 4100.0,
+      "vat_rate": 0.0,
+      "vat_exemption": "0% KDV (4691 s. TGB Kanunu & 3065 s. KDV Kanunu Geçici 20/1 Teknopark Yazılım İstisnası / Hizmet İhracatı Muafiyeti)"
+    },
+    "pro": {
+      "name": "Pro Searcher & High-Frequency Arbiter",
+      "amount_usdc": 199.0,
+      "duration_days": 30,
+      "rate_limit_per_min": 1200,
+      "quota_decisions": "Unlimited (Subject to Rate Limit)",
+      "features": [
+        "1.200 req/dakika Özel Ayrılmış Kapasite (Aylık Sınırsız İstek)",
+        "Rezonans Filtreli Kritik Tasfiyeler (/v1/radar/hot-positions?filter=resonance)",
+        "Çift Zincirli Canlı Gözlem (Base L2 Flashblocks + Arbitrum One Sequencer)",
+        "İşlem Başına OEV Analitiği ve Tarihsel Veri Seti (/v1/radar/oev-analytics)",
+        "25ms Optimize Bellek İçi RAMDisk Gecikmesi",
+        "Özel Webhook & Telegram/Discord Sinyal Boru Hattı"
+      ],
+      "amount_try_net": 8250.0,
+      "amount_try_vat": 0.0,
+      "amount_try_total": 8250.0,
+      "vat_rate": 0.0,
+      "vat_exemption": "0% KDV (4691 s. TGB Kanunu & 3065 s. KDV Kanunu Geçici 20/1 Teknopark Yazılım İstisnası / Hizmet İhracatı Muafiyeti)"
+    },
+    "institutional": {
+      "name": "Institutional Sovereign Syndicate & Curator Feed",
+      "amount_usdc": 499.0,
+      "duration_days": 30,
+      "rate_limit_per_min": 3000,
+      "quota_decisions": "Unlimited Bare-Metal Capacity",
+      "features": [
+        "3.000 req/dakika Özel Çıplak Donanım (Bare-Metal) Kapasitesi",
+        "Milisaniyelik Neural-Alpha Sinyal Beslemesi (/v1/radar/neural-alpha)",
+        "Üç Zincirli Tam Kapsam: Base L2 + Arbitrum One + Ethereum L1 (Reth Yerel Düğüm)",
+        "MetaMorpho Kasa Stres Simülasyon Motoru (/v1/radar/curator/{vault})",
+        "SLA Garantili Sub-15ms Yanıt & %99.99 Kesintisiz Çalışma Taahhüdü",
+        "Otomatik Resmi Ticari PDF Faturalandırma & Kurumsal Destek Masası"
+      ],
+      "amount_try_net": 20700.0,
+      "amount_try_vat": 0.0,
+      "amount_try_total": 20700.0,
+      "vat_rate": 0.0,
+      "vat_exemption": "0% KDV (4691 s. TGB Kanunu & 3065 s. KDV Kanunu Geçici 20/1 Teknopark Yazılım İstisnası / Hizmet İhracatı Muafiyeti)"
+    }
+  },
+  "werr_stakeholder_matrix": {
+    "tier_1_sentinel": {
+      "name": "Genesis Sentinel",
+      "min_werr_hold": 100000,
+      "burst_allowance_pct": 50,
+      "latency_ring": "Sub-20ms RAMDisk Route",
+      "renewal_discount_pct": 15,
+      "throttling_protection": "Soft Rate Buffer"
+    },
+    "tier_2_alpha": {
+      "name": "Alpha Liquidator (Genesis Stakeholder)",
+      "min_werr_hold": 500000,
+      "execution_priority": "Mempool-First Broadcast (100ms prior to public REST caches)",
+      "latency_ring": "Sub-5ms Raw Stream",
+      "burst_allowance_pct": "Uncapped (Zero 429 Errors)",
+      "renewal_discount_pct": 35,
+      "burn_to_renew": "Burn 50,000 $WERR for 100% Free Monthly Extension"
+    },
+    "tier_3_consortium": {
+      "name": "Consortium Node Validator",
+      "min_werr_hold": 2500000,
+      "governance_role": "Faz 2 App-Rollup Sequencer / Node Operator",
+      "api_fee": "100% Lifetime Free (While Staked)",
+      "hft_desk": "Direct Dedicated Engineering Channel"
+    }
+  },
+  "binance_api_key": "nmyks3eJIpJJyYHfBvmROHOVvQsgMymZqwIhCz3BElBJkalmnUQxEfoJMuE1k8lr",
+  "binance_api_secret": "Drlhdyd9Id03roVNoSbUbLSh02iZ1TPuUhiYDe5DxRs3fTEZ0RDO8QL4N4zNx7gb",
+  "payments_enabled": true,
+  "max_payment_age_days": 7,
+  "trc20_usdt_deposit_address": "TLMhaDJTVYBHBSGJ9nCQGLvqnYFPsBgLJu",
+  "iyzico": {
+    "api_key": "RVJBi7LKtp3e6io0uJWtkgA4MxNV1RGs",
+    "secret_key": "u7raGvOdt8rMfOf3LuBHSpAsJ82b5QmA",
+    "merchant_id": "276514",
+    "base_url": "https://api.iyzipay.com",
+    "usd_try_rate": 41.5
+  }
+}

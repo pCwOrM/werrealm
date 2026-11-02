@@ -1,22 +1,28 @@
 """
-Werr Burn Watcher Daemon (On-Chain ATP & Reflex Event Listener)
-==============================================================
+Werr Burn Watcher Daemon (On-Chain ATP & Reflex Event Listener - v1.1 Production)
+================================================================================
 Werrealm Base L2 Mainnet Yakım Olayı Dinleyicisi & Metabolik Kredi Motoru.
 
 İşlevi:
 - Base Mainnet (Chain ID: 8453) üzerindeki Werrium ($WERR) akıllı sözleşmesini
   (0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2) izler.
-- `ATPBurnInitiated` ve `AnswerrReflexBurned` event'lerini yakalar.
+- `ATPBurnInitiated(address caller, uint256 werrAmount, uint256 atpEquivalent)` ve
+  `AnswerrReflexBurned(address caller, uint256 werrAmount, bytes32 queryHash)` event'lerini yakalar.
 - Yakılan her 1 $WERR için 1,000,000,000 ATP metabolik kotasını müşterinin hesabına
   anında işler (1 Gwei = 1 ATP).
-- Dış denetçinin "ATP kredilendiren hiçbir izleyici yok; yakım zincirde kalıyor"
-  eleştirisini tam otomasyonla kapatır.
+- Hem yerel JSON durum dosyasını (`werr_metabolic_credits.json`) hem de SQLite veritabanını
+  (`werracle_api_keys.db`) atomik işlemlerle günceller.
+- Systemd uyumlu arka plan daemon modu (`--daemon`), sinyal yakalama (SIGINT/SIGTERM) ve
+  hata kurtarma mekanizmalarına sahiptir.
 """
 
 import os
 import sys
 import json
 import time
+import signal
+import sqlite3
+import argparse
 import requests
 from typing import Dict, Any, List, Optional
 
@@ -72,34 +78,40 @@ def keccak_256(data: bytes) -> bytes:
     return bytes(out[:32])
 
 class WerrBurnWatcher:
-    VERSION = "v1.0.0-Live-Event-Bridge"
+    VERSION = "v1.1.0-Daemon-Production"
     CONTRACT_ADDRESS = "0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2"
     
     # Event Topic0 Keccak-256 Hashes
     TOPIC_ATP_BURN = "0x" + keccak_256(b"ATPBurnInitiated(address,uint256,uint256)").hex()
     TOPIC_REFLEX_BURN = "0x" + keccak_256(b"AnswerrReflexBurned(address,uint256,bytes32)").hex()
     
-    # RPC Havuzu
+    # RPC Havuzu (Yüksek Erişilebilirlik)
     DEFAULT_RPCS = [
         "https://mainnet.base.org",
         "https://base-rpc.publicnode.com",
         "https://base.llamarpc.com"
     ]
 
-    def __init__(self, data_dir: Optional[str] = None):
+    def __init__(self, data_dir: Optional[str] = None, db_path: Optional[str] = None):
         self.data_dir = data_dir or os.path.join(os.path.dirname(__file__), "..", "data")
         os.makedirs(self.data_dir, exist_ok=True)
         
+        self.db_path = db_path or os.environ.get("WERRACLE_DB_PATH", "/var/lib/werracle-health/werracle_api_keys.db")
         self.state_file = os.path.join(self.data_dir, "burn_watcher_state.json")
         self.credits_file = os.path.join(self.data_dir, "werr_metabolic_credits.json")
         
+        self.running = True
+        
         self.state = self._load_json(self.state_file, {
-            "last_block": 21500000, # Genesis deployment block approx
+            "last_block": 21500000,
             "total_atp_credited": 0,
             "total_reflex_burned": 0,
             "last_scan_timestamp": 0
         })
         self.credits = self._load_json(self.credits_file, {})
+        
+        # SQLite tablosunu hazırla (eğer DB varsa)
+        self._init_sqlite_table()
 
     def _load_json(self, path: str, default: Any) -> Any:
         if os.path.exists(path):
@@ -111,8 +123,37 @@ class WerrBurnWatcher:
         return default
 
     def _save_json(self, path: str, data: Any):
-        with open(path, "w", encoding="utf-8") as f:
+        temp_path = path + ".tmp"
+        with open(temp_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
+        os.replace(temp_path, path)
+
+    def _init_sqlite_table(self):
+        """SQLite üzerinde on-chain yakımları ve kredileri tutan tabloyu oluşturur."""
+        if not self.db_path:
+            return
+        db_dir = os.path.dirname(self.db_path)
+        if db_dir and not os.path.exists(db_dir):
+            return
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                conn.execute("""
+                    CREATE TABLE IF NOT EXISTS werr_burn_events (
+                        tx_hash TEXT PRIMARY KEY,
+                        caller_address TEXT NOT NULL,
+                        event_type TEXT NOT NULL,
+                        werr_amount_wei TEXT NOT NULL,
+                        atp_credited INTEGER NOT NULL DEFAULT 0,
+                        query_hash TEXT,
+                        block_number INTEGER NOT NULL,
+                        created_at REAL NOT NULL
+                    );
+                """)
+                conn.execute("CREATE INDEX IF NOT EXISTS idx_burn_caller ON werr_burn_events(caller_address);")
+                conn.commit()
+        except Exception as e:
+            # SQLite erişilemezse bile JSON fallback devrededir
+            pass
 
     def _rpc_call(self, method: str, params: list) -> Any:
         for rpc in self.DEFAULT_RPCS:
@@ -128,7 +169,7 @@ class WerrBurnWatcher:
                     return data["result"]
             except Exception:
                 continue
-        raise ConnectionError("Tüm Base Mainnet RPC uçları zaman aşımına uğradı.")
+        raise ConnectionError("Tum Base Mainnet RPC uclari zaman asimina ugradi.")
 
     def get_latest_block(self) -> int:
         res = self._rpc_call("eth_blockNumber", [])
@@ -142,7 +183,6 @@ class WerrBurnWatcher:
         if start > end:
             return []
 
-        # Base RPC'leri getLogs çağrısında genelde max 2000-5000 blok sınırı koyar
         MAX_CHUNK = 2000
         events_found = []
         cur_from = start
@@ -164,7 +204,7 @@ class WerrBurnWatcher:
                         events_found.append(parsed)
                         self._apply_credit(parsed)
             except Exception as e:
-                print(f"[!] Log sorgu uyarısı (Blok {cur_from}-{cur_to}): {e}")
+                print(f"[!] Log sorgu uyarisi (Blok {cur_from}-{cur_to}): {e}")
 
             cur_from = cur_to + 1
 
@@ -186,7 +226,6 @@ class WerrBurnWatcher:
         block_num = int(log.get("blockNumber", "0x0"), 16)
 
         if t0 == self.TOPIC_ATP_BURN.lower():
-            # data: werrAmount (32b) + atpEquivalent (32b)
             if len(data_hex) >= 128:
                 werr_amount = int(data_hex[0:64], 16)
                 atp_amount = int(data_hex[64:128], 16)
@@ -220,6 +259,9 @@ class WerrBurnWatcher:
 
     def _apply_credit(self, event: Dict[str, Any]):
         caller = event["caller"]
+        now = time.time()
+        
+        # 1. JSON Bellek Guncelleme
         user_record = self.credits.get(caller, {
             "atp_balance": 0,
             "total_werr_burned_wei": 0,
@@ -239,25 +281,93 @@ class WerrBurnWatcher:
             "tx_hash": event["tx_hash"],
             "block": event["block"],
             "werr_wei": event["werr_amount"],
-            "timestamp": int(time.time())
+            "timestamp": int(now)
         })
         self.credits[caller] = user_record
+
+        # 2. SQLite Veritabani Guncelleme
+        if self.db_path and os.path.exists(self.db_path):
+            try:
+                with sqlite3.connect(self.db_path) as conn:
+                    conn.execute("""
+                        INSERT OR IGNORE INTO werr_burn_events (
+                            tx_hash, caller_address, event_type, werr_amount_wei,
+                            atp_credited, query_hash, block_number, created_at
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    """, (
+                        event["tx_hash"], caller, event["type"], str(event["werr_amount"]),
+                        event.get("atp_credited", 0), event.get("query_hash", ""),
+                        event["block"], now
+                    ))
+                    conn.commit()
+            except Exception:
+                pass
+
         print(f"[OK] On-Chain Kredi Islendi: {caller} -> +{event.get('atp_credited', 0):,} ATP (Tx: {event['tx_hash'][:16]}...)")
 
-    def get_user_atp_balance(self, client_address: str) -> int:
+    def get_user_atp_balance(self, client_address: str) -> Dict[str, Any]:
+        """İstemcinin birikmiş ATP ve yakılmış WERR dökümünü döner."""
         addr = client_address.lower()
-        return self.credits.get(addr, {}).get("atp_balance", 0)
+        rec = self.credits.get(addr, {
+            "atp_balance": 0,
+            "total_werr_burned_wei": 0,
+            "burn_history": []
+        })
+        return {
+            "address": client_address,
+            "atp_balance": rec.get("atp_balance", 0),
+            "total_werr_burned": round(rec.get("total_werr_burned_wei", 0) / 10**18, 4),
+            "total_burn_events": len(rec.get("burn_history", [])),
+            "recent_burns": rec.get("burn_history", [])[-5:]
+        }
+
+    def run_daemon(self, poll_interval: int = 12):
+        """Systemd ve arka plan servisi olarak kesintisiz calisir."""
+        print(f"[*] {self.VERSION} Daemon Baslatildi.")
+        print(f"    - Sozlesme: {self.CONTRACT_ADDRESS} (Base Mainnet)")
+        print(f"    - Tarama Araligi: {poll_interval} saniye")
+        print(f"    - Durum Dosyasi: {self.state_file}")
+        
+        while self.running:
+            try:
+                latest = self.get_latest_block()
+                last = self.state.get("last_block", latest - 50)
+                if latest > last:
+                    events = self.scan_burn_events(from_block=last + 1, to_block=latest)
+                    if events:
+                        print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {len(events)} yeni yakim olayi islendi (Blok: {latest:,}).")
+                time.sleep(poll_interval)
+            except KeyboardInterrupt:
+                print("\n[!] Kullanici tarafindan durduruldu.")
+                break
+            except Exception as e:
+                print(f"[!] Hata: {e}. {poll_interval} sn sonra tekrar denenecek...")
+                time.sleep(poll_interval)
+
+    def stop(self, *args):
+        self.running = False
 
 if __name__ == "__main__":
-    watcher = WerrBurnWatcher()
-    latest_block = watcher.get_latest_block()
-    print(f"[*] {WerrBurnWatcher.VERSION} Başlatıldı.")
-    print(f"    - İzlenen Ağ: Base Mainnet (Chain ID: 8453)")
-    print(f"    - Hedef Sözleşme: {watcher.CONTRACT_ADDRESS}")
-    print(f"    - En Son Blok: {latest_block:,}")
+    parser = argparse.ArgumentParser(description="Werr Burn Watcher Service")
+    parser.add_argument("--daemon", action="store_true", help="Kesintisiz arka plan modunda calis")
+    parser.add_argument("--interval", type=int, default=12, help="Tarama araligi (saniye)")
+    parser.add_argument("--blocks", type=int, default=200, help="Son kac blogu tara (tek seferlik modda)")
+    parser.add_argument("--data-dir", type=str, default=None, help="Durum dizini")
+    parser.add_argument("--db-path", type=str, default=None, help="SQLite veritabani yolu")
+    args = parser.parse_args()
 
-    # Son 100 bloğu canlı tara
-    start_test_block = latest_block - 100
-    print(f"[*] Blok {start_test_block:,} -> {latest_block:,} taranıyor...")
-    events = watcher.scan_burn_events(from_block=start_test_block, to_block=latest_block)
-    print(f"[OK] Tarama bitti. Tespit edilen yakim olayi: {len(events)}")
+    watcher = WerrBurnWatcher(data_dir=args.data_dir, db_path=args.db_path)
+    
+    # Sinyalleri yakala
+    signal.signal(signal.SIGINT, watcher.stop)
+    signal.signal(signal.SIGTERM, watcher.stop)
+
+    if args.daemon:
+        watcher.run_daemon(poll_interval=args.interval)
+    else:
+        latest = watcher.get_latest_block()
+        start = latest - args.blocks
+        print(f"[*] Tek Seferlik Tarama: Blok {start:,} -> {latest:,}")
+        evs = watcher.scan_burn_events(from_block=start, to_block=latest)
+        print(f"[OK] Tarama tamamlandi. Bulunan olay sayisi: {len(evs)}")
+        print(f"[OK] Genel Durum: Toplam ATP: {watcher.state.get('total_atp_credited', 0):,} | Toplam Reflex Yakimi: {watcher.state.get('total_reflex_burned', 0):,}")
