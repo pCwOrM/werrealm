@@ -1,7 +1,7 @@
 {
   "version": "v1.0.0-Live-RPC-Auditor",
-  "timestamp_utc": "2026-11-02T20:23:53Z",
-  "block_number": 53430838,
+  "timestamp_utc": "2026-11-03T12:50:42Z",
+  "block_number": 53476942,
   "chain_id": 8453,
   "token_contract": "0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2",
   "total_supply_werr": 1000000000.0,
@@ -18,9 +18,9 @@
       "address": "0x803a439fa8F7cf078302b51111Ae003b5221FC19",
       "label": "Werrealm Genesis EOA Key (Migration Source)",
       "type": "Genesis Founder EOA",
-      "balance_wei": "49999000000000000000000000",
-      "balance_werr": 49999000.0,
-      "percentage_of_supply": 4.9999
+      "balance_wei": "49900000000000000000000000",
+      "balance_werr": 49900000.0,
+      "percentage_of_supply": 4.99
     },
     "bekirhan_alpha": {
       "address": "0xB89AecB2A19CFCc13EE060154A1eAbc42C94485f",
@@ -37,17 +37,28 @@
       "balance_wei": "0",
       "balance_werr": 0.0,
       "percentage_of_supply": 0.0
+    },
+    "dead_address_burn": {
+      "address": "0x000000000000000000000000000000000000dEaD",
+      "label": "EVM Dead Burn Blackhole",
+      "type": "Permanent Burn Address",
+      "balance_wei": "99000000000000000000000",
+      "balance_werr": 99000.0,
+      "percentage_of_supply": 0.0099
     }
   },
   "metrics": {
     "safe_multisig_werr": 949501000.0,
     "safe_multisig_pct": 94.9501,
-    "treasury_reserve_werr": 49999000.0,
-    "treasury_reserve_pct": 4.9999,
+    "treasury_reserve_werr": 49900000.0,
+    "treasury_reserve_pct": 4.99,
     "stakeholder_holding_werr": 500000.0,
     "stakeholder_holding_pct": 0.05,
     "other_circulating_werr": 0.0,
-    "total_accounted_pct": 100.0
+    "total_accounted_pct": 100.0,
+    "burned_werr": 99000.0,
+    "burned_pct": 0.0099,
+    "effective_circulating_werr": 999901000.0
   },
   "security_assessment": {
     "centralization_risk": "RESOLVED_SAFE_ACTIVE",
