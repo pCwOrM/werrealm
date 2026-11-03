@@ -45,10 +45,10 @@ class WerriteEngine:
         return (a << WerriteEngine.FP_SHIFT) // b
 
     @staticmethod
-    def mandelbrot_step(zx: int, zy: int, cx: int, cy: int) -> tuple[int, int, int]:
+    def polynomial_step(zx: int, zy: int, cx: int, cy: int) -> tuple[int, int, int]:
         """
-        Werror Engine ile entegre tek adimlik fraktal kaos adimi:
-        z_new = z^2 + c
+        Werror Engine ile entegre kuadratik polinom iterasyon adımı (Polynomial Escape Dynamics):
+        P_c(z) = z^2 + c
         zx_new = zx^2 - zy^2 + cx
         zy_new = 2 * zx * zy + cy
         """
@@ -63,6 +63,9 @@ class WerriteEngine:
         new_zy = two_zx_zy + cy
 
         return new_zx, new_zy, mag2
+
+    # Backward compatibility alias
+    mandelbrot_step = polynomial_step
 
     @staticmethod
     def verify_invariants() -> bool:
