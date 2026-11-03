@@ -114,6 +114,88 @@
       transition: color 0.2s;
     }
     .nav-links a:hover { color: var(--primary); }
+
+    /* Dropdown Menu System */
+    .nav-group {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+    }
+    .dropdown-btn {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      font-weight: 500;
+      background: none;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 0;
+      font-family: inherit;
+      transition: color 0.2s;
+    }
+    .dropdown-btn:hover { color: var(--primary); }
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      margin-top: 10px;
+      min-width: 220px;
+      background: rgba(8, 14, 28, 0.96);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(0, 242, 254, 0.25);
+      border-radius: 12px;
+      padding: 8px;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+    }
+    .dropdown-menu::before {
+      content: "";
+      position: absolute;
+      top: -12px;
+      left: 0;
+      right: 0;
+      height: 12px;
+    }
+    .nav-group:hover .dropdown-menu,
+    .nav-group:focus-within .dropdown-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      animation: navFadeIn 0.15s ease-out;
+    }
+    @keyframes navFadeIn {
+      from { opacity: 0; transform: translate(-50%, -6px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
+    }
+    .dropdown-menu a {
+      padding: 9px 12px !important;
+      color: #cbd5e1 !important;
+      border-radius: 8px;
+      font-size: 0.85rem !important;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.18s ease;
+      white-space: nowrap;
+      background: transparent !important;
+      text-decoration: none;
+    }
+    .dropdown-menu a:hover {
+      background: rgba(0, 242, 254, 0.1) !important;
+      color: var(--primary) !important;
+      transform: translateX(3px);
+    }
+    .nav-external {
+      color: var(--text-muted);
+      transition: color 0.2s;
+    }
+    .nav-external:hover {
+      color: #fff !important;
+    }
     .btn-small {
       padding: 8px 18px;
       border-radius: 8px;
@@ -435,16 +517,39 @@
         WERREALM <span class="brand-badge">$WERR</span>
       </a>
       <nav class="nav-links">
-        <a href="#stack">Stack</a>
-        <a href="#dual-engine">Dual-Engine</a>
-        <a href="#tokenomics">Tokenomics</a>
-        <a href="#tiers" style="color: var(--primary); font-weight: 600;">Pricing & Tiers</a>
-        <a href="#infrastructure">DePIN</a>
-        <a href="#leadership">Leadership & Governance</a>
+        <a href="#stack">Protocol</a>
         <a href="/whitepaper.html" style="color: var(--primary); font-weight: 600;">Whitepaper</a>
-        <a href="/manifesto.html">Manifesto</a>
-        <a href="https://radar.werracle.com" target="_blank">Radar DaaS</a>
-        <a href="https://basescan.org/address/0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2" target="_blank" class="btn-small">Basescan</a>
+        <a href="/tokenomics.html">Tokenomics</a>
+        <a href="#infrastructure">DePIN</a>
+        <a href="#leadership">Governance</a>
+
+        <div class="nav-group">
+          <button class="dropdown-btn" type="button">
+            More <span style="font-size: 0.65rem; opacity: 0.7;">▼</span>
+          </button>
+          <div class="dropdown-menu">
+            <a href="/architecture.html">
+              <span>🌐</span> DePIN Architecture
+            </a>
+            <a href="/manifesto.html">
+              <span>📜</span> Manifesto & Philosophy
+            </a>
+            <a href="#tiers">
+              <span>💎</span> Staking & Pricing Tiers
+            </a>
+            <a href="#dual-engine">
+              <span>⚡</span> Dual-Engine Flywheel
+            </a>
+          </div>
+        </div>
+
+        <a href="https://radar.werracle.com" target="_blank" class="nav-external" style="display: inline-flex; align-items: center; gap: 4px;">
+          Radar DaaS <span style="font-size: 0.75rem; opacity: 0.7;">↗</span>
+        </a>
+        <a href="https://basescan.org/address/0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2" target="_blank" class="btn-small" style="display: inline-flex; align-items: center; gap: 6px;">
+          <span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #00f2fe; box-shadow: 0 0 8px #00f2fe;"></span>
+          BaseScan
+        </a>
       </nav>
     </div>
   </header>
