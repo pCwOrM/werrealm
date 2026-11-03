@@ -1,0 +1,81 @@
+{
+  "protocol": "Werrealm / Werrium ($WERR)",
+  "governing_entity": "ITOUCH BILISIM SISTEMLERI LTD. STI.",
+  "location": "Cukurova University Science Park (Teknokent), Adana, Turkey",
+  "fiscal_year": 2026,
+  "period": "2026-11",
+  "currency": "USD",
+  "last_updated": "2026-11-03T21:53:16Z",
+  "summary": {
+    "total_gross_revenue_usd": 598.0,
+    "total_operating_expenses_usd": 468.0,
+    "net_operational_surplus_usd": 130.0,
+    "operating_margin_percentage": 21.74,
+    "financial_health": "SELF_SUSTAINING_PROFITABLE",
+    "allocated_burn_reserve_usd": 130.0,
+    "total_werr_burned_to_date": 0.0
+  },
+  "incomes": [
+    {
+      "id": "INC-2026-11-001",
+      "date": "2026-10-31",
+      "product_platform": "Werracle Risk Radar (radar.werracle.com)",
+      "tier": "Institutional B2B License",
+      "description": "High-Frequency Morpho/Aave OEV & Liquidation Telemetry Stream",
+      "amount_usd": 499.0,
+      "billing_cycle": "Monthly",
+      "payment_status": "PAID_CONFIRMED",
+      "tax_treatment": "%0 VAT (Teknopark R&D Software Exemption)"
+    },
+    {
+      "id": "INC-2026-11-002",
+      "date": "2026-11-03",
+      "product_platform": "Answerr AI Decision API (answerr.me)",
+      "tier": "answerr Pro Subscription",
+      "description": "1,000,000 Neuromorphic 0-VRAM System-1 Decision Quota (ans_live_0zbQb9...)",
+      "invoice_no": "INV-2026-0CA652A1",
+      "valid_until": "2026-12-04",
+      "amount_usd": 99.0,
+      "billing_cycle": "Monthly",
+      "payment_status": "PAID_CONFIRMED",
+      "tax_treatment": "%0 VAT (Teknopark R&D Software Exemption)"
+    }
+  ],
+  "expenses": [
+    {
+      "id": "EXP-2026-11-001",
+      "category": "Bare-Metal Infrastructure",
+      "item": "pcworm-root Genesis Core Server (Dual Intel Xeon E5, 40 vCPUs, 256 GB RAM, 5.9 TB Storage)",
+      "amount_usd": 250.0,
+      "period": "2026-11",
+      "due_date": "2026-11-30",
+      "status": "ACCRUED"
+    },
+    {
+      "id": "EXP-2026-11-002",
+      "category": "Validator Sentry Node",
+      "item": "mechsrv Defense & Sentry Validator (Enterprise Xeon, 24 GB RAM, High-IOPS SSD)",
+      "amount_usd": 200.0,
+      "period": "2026-11",
+      "due_date": "2026-11-30",
+      "status": "ACCRUED"
+    },
+    {
+      "id": "EXP-2026-11-003",
+      "category": "Developer Tooling & CI/CD",
+      "item": "GitHub Pro Team Plan (4 Seats @ $4.50/seat)",
+      "amount_usd": 18.0,
+      "period": "2026-11",
+      "due_date": "2026-11-30",
+      "status": "ACCRUED"
+    }
+  ],
+  "token_burn_strategy": {
+    "burn_policy": "HYBRID_DUAL_BURN",
+    "description": "1) Real-time metabolic ATP quotas per API consumption + 2) 100% of Net Operational Surplus allocated to monthly WERR Buyback & Burn",
+    "dead_address": "0x000000000000000000000000000000000000dEaD",
+    "current_surplus_usd": 130.0,
+    "target_burn_werr_nominal": 130000.0,
+    "burn_events": []
+  }
+}
