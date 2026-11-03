@@ -3,7 +3,7 @@
 **Governing Institution:** ITOUCH BILISIM SISTEMLERI LTD. STI.  
 **R&D Campus:** Cukurova University Science Park (Teknokent), Adana, Turkey  
 **Single Source of Truth:** `werrealm/data/treasury_ledger.json`  
-**Last Audit Timestamp:** 2026-11-03T21:53:16Z  
+**Last Audit Timestamp:** 2026-11-03T22:05:38Z  
 
 ---
 

@@ -1,6 +1,7 @@
 {
-  "last_block": 53426681,
+  "last_block": 53476942,
   "total_atp_credited": 0,
-  "total_reflex_burned": 0,
-  "last_scan_timestamp": 1793642714
+  "total_reflex_burned": 99000.0,
+  "last_scan_timestamp": 1793743231,
+  "last_burn_tx": "0xfa96b3d04a2d6e8066abd92345b16c5e5d63bc4539a18cee78f699f265117e68"
 }

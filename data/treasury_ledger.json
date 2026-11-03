@@ -5,7 +5,7 @@
   "fiscal_year": 2026,
   "period": "2026-11",
   "currency": "USD",
-  "last_updated": "2026-11-03T21:53:16Z",
+  "last_updated": "2026-11-03T22:05:38Z",
   "summary": {
     "total_gross_revenue_usd": 598.0,
     "total_operating_expenses_usd": 468.0,
@@ -13,7 +13,7 @@
     "operating_margin_percentage": 21.74,
     "financial_health": "SELF_SUSTAINING_PROFITABLE",
     "allocated_burn_reserve_usd": 130.0,
-    "total_werr_burned_to_date": 0.0
+    "total_werr_burned_to_date": 99000.0
   },
   "incomes": [
     {
@@ -76,6 +76,22 @@
     "dead_address": "0x000000000000000000000000000000000000dEaD",
     "current_surplus_usd": 130.0,
     "target_burn_werr_nominal": 130000.0,
-    "burn_events": []
+    "burn_events": [
+      {
+        "event_id": "BURN-2026-11-001",
+        "type": "COMMERCIAL_REVENUE_PROOF_OF_BURN",
+        "timestamp_utc": "2026-11-03T22:00:31Z",
+        "block_number": 53476942,
+        "tx_hash": "0xfa96b3d04a2d6e8066abd92345b16c5e5d63bc4539a18cee78f699f265117e68",
+        "explorer_url": "https://basescan.org/tx/0xfa96b3d04a2d6e8066abd92345b16c5e5d63bc4539a18cee78f699f265117e68",
+        "product_platform": "answerr AI Decision API (answerr.me)",
+        "invoice_no": "INV-2026-0CA652A1",
+        "amount_usd": 99.0,
+        "werr_burned": 99000.0,
+        "from_wallet": "0x803a439fa8F7cf078302b51111Ae003b5221FC19",
+        "dead_address": "0x000000000000000000000000000000000000dEaD",
+        "status": "CONFIRMED_ON_CHAIN"
+      }
+    ]
   }
 }
