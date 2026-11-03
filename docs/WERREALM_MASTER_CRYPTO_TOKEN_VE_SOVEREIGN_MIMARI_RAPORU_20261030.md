@@ -82,8 +82,8 @@ Sıradan bir ERC-20 tokenının ötesinde, sözleşme doğrudan protokol seviyes
 > [!NOTE]
 > **Aşama Ayrımı:** Aşağıdaki motorlar Faz-1'de Python tabanlı API Gateway ve DaaS analitiği olarak canlıda çalışmaktadır; Faz-2'de EVM içine Rust precompile olarak entegre edilecek, Faz-3'te ise bağımsız PoER konsensüs çekirdeğini oluşturacaktır.
 
-### 3.1. Werror Engine (Yörüngesel Hata Dinamiği - OED)
-* **İşlevi:** Ağdaki düğümler arası Bizans hata bağışıklığını ve gecikme sapmalarını yörüngesel kaos mekaniği prensipleriyle (Mandelbrot $\partial M: z \mapsto z^2 + c$) çözer.
+### 3.1. Werror Engine (Yörüngesel Hata Dinamiği & Prosedürel Sınır Çekirdeği - OED)
+* **İşlevi:** Ağdaki düğümler arası Bizans hata bağışıklığını ve gecikme sapmalarını yörüngesel hata dinamiği (OED) ve kuadratik polinom kaçış mekaniği prensipleriyle (Polynomial Escape Dynamics, $P_c(z) = z^2 + c$, $\partial\mathcal{M}$ prosedürel sınır geometrisi) çözer.
 * **Hata Tespiti:** Orakıl ve tasfiye sinyallerinde sapma gösteren düğümlerin güven skorunu düşürür (Faz 3 Epistemic Slashing temeli).
 
 ### 3.2. Werrite Engine (Deterministik Q16.16 Aritmetiği & Lean 4 Kalkanı)

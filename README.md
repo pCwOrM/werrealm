@@ -13,7 +13,7 @@ By unifying the **Werror Engine** (Orbital Error Dynamics & Byzantine Fault Immu
 | **Werrealm** | The Sovereign Realm | The L1/L2 blockchain network & decentralized collective brain |
 | **Werrium ($WERR)** | Protocol Currency | Native gas token, staking collateral, and buyback-burn asset |
 | **Werron** | Cognitive Unit | Individual biological neuron/synapse within the 158k Drosophila connectome |
-| **Werror Engine** | Algorithmic Core | Orbital Error Dynamics (OED), chaotic boundary escape, and Byzantine immune engine |
+| **Werror Engine** | Algorithmic Core | Orbital Error Dynamics (OED), procedural boundary dynamics, polynomial escape metrics, and Byzantine fault immunity |
 | **Werrite Engine** | EVM Parity Engine | Q16.16 deterministic integer fixed-point engine with Lean4 $\epsilon < 2^{-16}$ error shield |
 | **Werracle** | In-Consensus Oracle | Native on-chain price, volatility, and liquidation risk oracle |
 
@@ -29,7 +29,7 @@ werrealm/
 │   └── test/                      # Smart contract unit tests
 ├── core/
 │   ├── werrite_engine.py          # Werrite Q16.16 EVM-parity fixed-point arithmetic engine
-│   ├── werror_engine.py           # Werror Orbital Error Dynamics (OED) & Byzantine chaos tester
+│   ├── werror_engine.py           # Werror Orbital Error Dynamics (OED) & Procedural Boundary engine
 │   └── werracle_connector.py      # Sub-second in-consensus oracle state extractor
 ├── gateway/
 │   └── werr_stake_gate.py         # Stake-to-Access & B2B API billing gateway

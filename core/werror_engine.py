@@ -1,11 +1,12 @@
 """
-Werror Engine (Orbital Error Dynamics & Chaos Decision Core)
-===========================================================
-Werrealm Bilişsel Yığınında (Cognitive Stack) Fraktal Kaos, Karar ve Bizans Bağışıklığı Motoru.
+Werror Engine (Orbital Error Dynamics & Procedural Boundary Core)
+================================================================
+Werrealm Bilişsel Yığınında (Cognitive Stack) Prosedürel Sınır Dinamiği, Karar ve Bizans Bağışıklığı Motoru.
 
 Teorik Temel:
 - WERR (Waves & Errors) / Orbital Error Dynamics (OED, arXiv:2609.25498)
-- Mandelbrot kaos sınırı (∂M) kaçış yörüngesi analizi ile 0-VRAM System-1 refleks kararları.
+- Polinomiyal Kaçış Dinamiği (Polynomial Escape Dynamics, P_c(z) = z^2 + c) ve Prosedürel Sınır Geometrisi
+  (Procedural Boundary Dynamics) analizi ile 0-VRAM System-1 refleks kararları.
 - Konsensüs düzeyinde "Epistemic Slashing": Ağdaki düğümlerin ve orakıl beslemelerinin
   hata sapmalarını (divergence metric) milisaniyelik seviyede ölçen bağışıklık kalkanı.
 """
@@ -21,9 +22,9 @@ except ModuleNotFoundError:
     from core.werrite_engine import WerriteEngine
 
 class WerrorEngine:
-    VERSION = "v1.0.0-Werror-OED-Core"
+    VERSION = "v1.1.0-Werror-ProceduralBoundary-Core"
     
-    # Fraktal Kaos Sabitleri (Q16.16 Paritesi)
+    # Prosedürel Kaos & Polinom Kaçış Sabitleri (Q16.16 Paritesi)
     ESCAPE_RADIUS_SQ = WerriteEngine.to_fp(4.0)  # |z|^2 > 4.0 kaçış eşiği
     MAX_ITERATIONS = 36                          # Drosophila biyolojik vuruş penceresi
 
@@ -32,8 +33,8 @@ class WerrorEngine:
 
     def evaluate_saccade(self, sensory_input_x: float, sensory_input_y: float) -> Dict[str, Any]:
         """
-        Duyusal girdiyi (fiyat, volatilite, sorgu parametresi) Mandelbrot karmaşık koordinatına
-        (c = cx + i*cy) dönüştürür ve kaçış dinamiğini (OED yörüngesini) hesaplar.
+        Duyusal girdiyi (fiyat, volatilite, sorgu parametresi) karmaşık düzlem koordinatına
+        (c = cx + i*cy) dönüştürür ve polinomiyal kaçış dinamiğini (Polynomial Escape Dynamics / OED yörüngesini) hesaplar.
         0 Byte VRAM tüketir, tamamen deterministiktir.
         """
         cx_fp = WerriteEngine.to_fp(sensory_input_x)
@@ -46,7 +47,7 @@ class WerrorEngine:
         orbit_energy = 0
 
         for step in range(1, self.MAX_ITERATIONS + 1):
-            zx_fp, zy_fp, mag2 = WerriteEngine.mandelbrot_step(zx_fp, zy_fp, cx_fp, cy_fp)
+            zx_fp, zy_fp, mag2 = WerriteEngine.polynomial_step(zx_fp, zy_fp, cx_fp, cy_fp)
             orbit_energy += mag2 >> 16
 
             if mag2 > self.ESCAPE_RADIUS_SQ:
