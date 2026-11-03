@@ -1,7 +1,7 @@
 # WERREALM, WERRIUM ($WERR) VE BİYOMİMETİK PROTOKOL MASTER RAPORU (REVİZYON v1.1)
 **Kapsam:** Werrealm · Werrium ($WERR) · Werror Engine · Werrite Engine · Werralim · Werron  
-**Tüzel Hak Sahibi:** ITOUCH BİLİŞİM SİSTEMLERİ MÜHENDİSLİK DANIŞMANLIK SANAYİ VE TİCARET LİMİTED ŞİRKETİ  
-**Lokasyon:** Çukurova Üniversitesi Teknoloji Geliştirme Bölgesi (Teknokent), Sarıçam / Adana, Türkiye  
+**Tüzel Hak Sahibi:** ITOUCH BILISIM SISTEMLERI LTD. STI. (ITOUCH BİLİŞİM SİSTEMLERİ MÜHENDİSLİK DANIŞMANLIK SAN. VE TİC. LTD. ŞTİ.)  
+**Resmi Adres:** Cukurova Universitesi Teknokent, Balcali Kampusu, B/Blk No:4/1/26 Ofis No: 207D Saricam / Adana, Turkiye (Cukurova University Science Park)  
 **Tarih / Saat:** 31 Ekim 2026 — 16:00 UTC+3  
 **Sürüm & Statü:** v1.1 (Bağımsız Dış Denetçi İncelemesi ve SSOT Uyumlu Revize Sürüm)  
 **Hedef Kitle:** Şirket Yönetimi, Dış Denetçiler (Auditors), Yeni Werrealm Geliştirici Uçları (Dedicated Agent Contexts)
