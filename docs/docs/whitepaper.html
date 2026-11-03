@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#040711">
+  <title>Werrealm Whitepaper · The Biomimetic Brain-Chain & Werrium ($WERR)</title>
+  <meta name="description" content="Technical Whitepaper for Werrealm: The Biomimetic Brain-Chain Protocol, Procedural Boundary Dynamics, Zero-VRAM Neuromorphic Consensus, and Werrium ($WERR) on Base Mainnet.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <style>
+    :root {
+      --bg: #040711;
+      --card-bg: rgba(13, 22, 41, 0.7);
+      --card-border: rgba(30, 58, 102, 0.4);
+      --primary: #00f2fe;
+      --secondary: #4facfe;
+      --accent: #10b981;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --font-sans: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      line-height: 1.75;
+      padding-bottom: 80px;
+    }
+    .container { max-width: 1000px; margin: 0 auto; padding: 0 24px; }
+    header {
+      padding: 16px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(4, 7, 17, 0.85);
+    }
+    .nav-wrap { display: flex; justify-content: space-between; align-items: center; }
+    .brand { color: #fff; font-weight: 800; font-size: 1.25rem; text-decoration: none; display: flex; align-items: center; gap: 8px; }
+    .nav-links { display: flex; align-items: center; gap: 16px; }
+    .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+    .nav-links a:hover, .nav-links a.active { color: var(--primary); }
+    @media (max-width: 768px) {
+      .nav-wrap { flex-direction: column; align-items: stretch; gap: 10px; }
+      .brand { justify-content: center; }
+      .nav-links { overflow-x: auto; white-space: nowrap; padding-bottom: 4px; scrollbar-width: none; }
+      .nav-links::-webkit-scrollbar { display: none; }
+      .nav-links a { font-size: 0.85rem; padding: 4px 10px; background: rgba(255,255,255,0.04); border-radius: 999px; }
+      h1 { font-size: 2.1rem; }
+    }
+    @media (max-width: 480px) {
+      .container { padding: 0 14px; }
+      .card { padding: 18px 14px; border-radius: 12px; }
+      h1 { font-size: 1.85rem; }
+      h2 { font-size: 1.3rem; }
+    }
+    .hero-doc { padding: 60px 0 30px; text-align: center; }
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      background: rgba(0, 242, 254, 0.1);
+      color: var(--primary);
+      border: 1px solid rgba(0, 242, 254, 0.3);
+      margin-bottom: 16px;
+    }
+    h1 { font-size: 2.5rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 12px; line-height: 1.2; }
+    .lead { font-size: 1.15rem; color: var(--text-muted); max-width: 780px; margin: 0 auto 24px; }
+    .meta-box {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 36px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+      gap: 16px;
+      font-size: 0.88rem;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 30px;
+    }
+    h2 { font-size: 1.55rem; margin-bottom: 18px; color: #fff; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); padding-bottom: 12px; }
+    h3 { font-size: 1.2rem; margin: 22px 0 10px; color: var(--primary); }
+    p { margin-bottom: 14px; color: #cbd5e1; font-size: 0.98rem; }
+    ul, ol { margin: 12px 0 18px 24px; color: #cbd5e1; font-size: 0.96rem; }
+    li { margin-bottom: 8px; }
+    code { font-family: var(--font-mono); background: rgba(255, 255, 255, 0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.88rem; color: #38bdf8; }
+    .spec-table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 0.92rem; }
+    .spec-table th, .spec-table td { padding: 10px 14px; border: 1px solid rgba(255, 255, 255, 0.08); text-align: left; }
+    .spec-table th { background: rgba(255, 255, 255, 0.04); color: #fff; font-weight: 600; }
+    .highlight-pill { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 2px 8px; border-radius: 6px; font-size: 0.82rem; font-family: var(--font-mono); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="container nav-wrap">
+      <a href="/" class="brand">
+        <span style="color: var(--primary);">WERREALM</span>
+        <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: normal;">/ Technical Whitepaper</span>
+      </a>
+      <div class="nav-links">
+        <a href="/">Overview</a>
+        <a href="/whitepaper.html" class="active" style="color: var(--primary); font-weight: 600;">Whitepaper</a>
+        <a href="/tokenomics.html">Tokenomics</a>
+        <a href="/architecture.html">Architecture</a>
+        <a href="/manifesto.html">Manifesto</a>
+        <a href="https://basescan.org/address/0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2" target="_blank" style="color: var(--accent);">Basescan ($WERR)</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="hero-doc">
+      <span class="badge">PROTOCOL WHITEPAPER v1.1 · BASE L2 MAINNET</span>
+      <h1>The Biomimetic Brain-Chain Protocol</h1>
+      <p class="lead">
+        Deterministic Neuromorphic Execution, Procedural Boundary Dynamics, and the Werrium ($WERR) Sovereign Gas & Oracle Economy.
+      </p>
+
+      <div class="meta-box">
+        <div><strong>Principal Architect:</strong> Volkan Dağlı (CTO)</div>
+        <div><strong>Executive Governance:</strong> Bekirhan Dağlı (CEO)</div>
+        <div><strong>R&D Institution:</strong> ITouch Bilişim Ltd. Şti. (Çukurova Teknokent)</div>
+        <div><strong>Token Deployment:</strong> Base Mainnet (Chain ID 8453)</div>
+      </div>
+    </div>
+
+    <!-- Section 1: Abstract -->
+    <div class="card">
+      <h2>1. Abstract & Problem Statement</h2>
+      <p>
+        Modern decentralized infrastructure faces an insurmountable dichotomy: blockchain consensus requires <strong>absolute, bit-exact determinism</strong> across heterogeneous validator nodes, whereas contemporary artificial intelligence models depend on non-deterministic IEEE 754 floating-point operations executing across power-hungry, centralized GPU clusters with fragile VRAM footprints.
+      </p>
+      <p>
+        <strong>Werrealm</strong> resolves this bottleneck by introducing the first <em>Biomimetic Brain-Chain</em>: an epistemic consensus architecture that replaces stochastic matrix multiplication with <strong>Procedural Boundary Dynamics</strong> and <strong>Zero-VRAM Neuromorphic Execution</strong>. By embedding real biological connectome topologies (158,262 neurons and 3.99M synapses derived from full-scale <em>Drosophila</em> connectome mapping) into deterministic Q16.16 integer arithmetic, Werrealm delivers sub-millisecond AI reflexes directly on bare-metal CPU hardware at zero marginal inference cost.
+      </p>
+    </div>
+
+    <!-- Section 2: Core Technological Innovations -->
+    <div class="card">
+      <h2>2. Core Technological Architecture</h2>
+      <h3>2.1 Procedural Boundary Dynamics & Polynomial Escape Metrics</h3>
+      <p>
+        Instead of simulating multi-layer perceptrons through floating-point tensor approximations, Werrealm evaluates decision boundaries through quadratic polynomial iterations:
+      </p>
+      <p style="text-align: center; margin: 18px 0; font-family: var(--font-mono); font-size: 1.15rem; color: var(--primary);">
+        P<sub>c</sub>(z) = z<sup>2</sup> + c &nbsp;&nbsp;|&nbsp;&nbsp; |z<sub>n</sub>| &gt; 2.0
+      </p>
+      <p>
+        By analyzing escape velocities and orbital Lyapunov exponents in complex phase space, the engine computes deterministic System-1 cognitive classifications in O(1) time without consuming a single byte of GPU memory.
+      </p>
+
+      <h3>2.2 Zero-VRAM Neuromorphic Integer Math (Werrite Engine)</h3>
+      <p>
+        Every state transition is guaranteed identical across ARM, x86_64, and WebAssembly nodes through 32-bit fixed-point arithmetic (Q16.16). 81 formal mathematical theorems implemented and compiled in <strong>Lean 4</strong> formally prove that no intermediate operation can overflow, diverge, or create Byzantine consensus forks.
+      </p>
+
+      <h3>2.3 Bio-Synthetic Living Cell (Werron & Werralim)</h3>
+      <p>
+        Werrealm operates a 24/7 decentralized living swarm composed of 8,192 autonomous biological colonies. Metabolic energy consumption is managed through cryptographic <em>Adenosine Triphosphate (ATP)</em> quotas, anchoring off-chain computational work directly into on-chain deflationary token burn mechanisms.
+      </p>
+    </div>
+
+    <!-- Section 3: Tokenomics & On-Chain Specification -->
+    <div class="card">
+      <h2>3. Werrium ($WERR) On-Chain Specifications</h2>
+      <p>
+        Werrium ($WERR) serves as the native utility token, settlement medium for high-frequency oracle telemetry, and staking asset across the Werrealm decentralized ecosystem.
+      </p>
+
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>Parameter</th>
+            <th>On-Chain Specification</th>
+            <th>Verification Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Token Name</strong></td>
+            <td>Werrium</td>
+            <td><span class="highlight-pill">Canonical</span></td>
+          </tr>
+          <tr>
+            <td><strong>Token Symbol</strong></td>
+            <td>WERR</td>
+            <td><span class="highlight-pill">ERC-20</span></td>
+          </tr>
+          <tr>
+            <td><strong>Deployment Network</strong></td>
+            <td>Base Mainnet (Layer 2 - Chain ID: 8453)</td>
+            <td><span class="highlight-pill">Live on-chain</span></td>
+          </tr>
+          <tr>
+            <td><strong>Contract Address</strong></td>
+            <td><code>0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2</code></td>
+            <td>Verified on BaseScan</td>
+          </tr>
+          <tr>
+            <td><strong>Decimals</strong></td>
+            <td>18</td>
+            <td>Standard</td>
+          </tr>
+          <tr>
+            <td><strong>Total Supply</strong></td>
+            <td>1,000,000,000 WERR (Fixed Supply, No-Mint, Renounced)</td>
+            <td>Immutable Cap</td>
+          </tr>
+          <tr>
+            <td><strong>Multi-Sig Treasury Vault</strong></td>
+            <td><code>0x7CC5fd367e210F4678Bcfca054cbe0F87291E355</code> (Safe 2/2)</td>
+            <td>Holds 94.95% of supply</td>
+          </tr>
+          <tr>
+            <td><strong>Superchain Inclusion</strong></td>
+            <td>PR #1391 (ethereum-optimism/ethereum-optimism.github.io)</td>
+            <td>CI All Green</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Section 4: Treasury Governance & Holder Security -->
+    <div class="card">
+      <h2>4. Treasury Governance & Holder Protection</h2>
+      <p>
+        To prevent centralized dump risks and ensure absolute multi-year runway alignment:
+      </p>
+      <ul>
+        <li><strong>94.95% Locked in Multi-Sig:</strong> Exactly 949,501,000 WERR is secured in the official Safe 2/2 Multi-Sig Vault (<code>0x7CC5fd367e210F4678Bcfca054cbe0F87291E355</code>).</li>
+        <li><strong>2-of-2 Dual Key Execution:</strong> Transactions from the treasury require simultaneous cryptographic co-signatures from both Co-Founders:
+          <ul>
+            <li>Volkan Dağlı (CTO / Genesis Key): <code>0x803a439fa8F7cf078302b51111Ae003b5221FC19</code></li>
+            <li>Bekirhan Dağlı (CEO / Governance Key): <code>0xB89AecB2A19CFCc13EE060154A1eAbc42C94485f</code></li>
+          </ul>
+        </li>
+        <li><strong>Zero Unilateral Authority:</strong> No individual actor, private key, or smart contract function can execute treasury withdrawals or mint new supply unilaterally.</li>
+      </ul>
+    </div>
+
+    <!-- Section 5: DePIN Node Topology -->
+    <div class="card">
+      <h2>5. DePIN Hardware Infrastructure</h2>
+      <p>
+        Werrealm operates on a geographically distributed, bare-metal server cluster rejecting fragile cloud hypervisors:
+      </p>
+      <ul>
+        <li><strong>Tier-1 Genesis Validator Node:</strong> Dual Xeon E5 (40 Threads), 256 GB RAM, 5.9 TB Tiered Storage running living cell synthesis, Schönhage polynomial reduction, and local Reth L1/L2 IPC consensus.</li>
+        <li><strong>Tier-2 Sentry Defense Node:</strong> Dedicated Enterprise Xeon Node operating independent Byzantine state transition verification, API load balancing, and failover query replication.</li>
+        <li><strong>Tier-3 Anycast Edge Gateway:</strong> Global Cloudflare edge network providing sub-millisecond API ingress, DDoS shielding, and universal SSL termination.</li>
+      </ul>
+    </div>
+
+    <!-- Section 6: Corporate Entity & Intellectual Property -->
+    <div class="card">
+      <h2>6. Corporate Legal Governance & Research Roots</h2>
+      <p>
+        Werrealm is researched, developed, and institutionally governed by:
+      </p>
+      <ul>
+        <li><strong>Entity:</strong> ITOUCH BİLİŞİM SİSTEMLERİ MÜHENDİSLİK DANIŞMANLIK SAN. VE TİC. LTD. ŞTİ.</li>
+        <li><strong>Headquarters:</strong> Çukurova University Technology Development Zone (Teknokent), Sarıçam, Adana, Turkey.</li>
+        <li><strong>Legal Identifiers:</strong> MERSİS: <code>0469094455800001</code> · VKN (Tax ID): <code>4690944558</code> · Sanayi Sicil: <code>827254</code>.</li>
+        <li><strong>Intellectual Property:</strong> Turkish Patent Application TR 2026/016633 (Procedural Boundary Dynamics & Epistemic Consensus Systems).</li>
+        <li><strong>Scientific Preprints:</strong> Foundational mathematical and empirical liquidation research (arXiv:2609.25498, Zenodo: 23642090).</li>
+        <li><strong>International Affiliates:</strong> United Kingdom (Sole Trader, <code>itouchsystems.co.uk</code>) and Ukraine Subsidiary (<code>itouchsystems.com.ua</code>).</li>
+      </ul>
+    </div>
+
+    <!-- Section 7: Conclusion -->
+    <div class="card" style="text-align: center; border-color: rgba(0, 242, 254, 0.4);">
+      <h2 style="justify-content: center; border-bottom: none;">7. Conclusion & Ecosystem Roadmap</h2>
+      <p style="max-width: 720px; margin: 0 auto 20px;">
+        Werrealm represents the next structural evolution in decentralized computing: combining biological efficiency with cryptographic immutability. Through fixed token economics, audited multi-sig governance, and zero-VRAM AI execution, Werrium ($WERR) powers the sovereign intelligence of Web3.
+      </p>
+      <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+        <a href="https://basescan.org/address/0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2" target="_blank" class="badge" style="text-decoration: none; font-size: 0.85rem; padding: 8px 16px;">
+          View $WERR on BaseScan
+        </a>
+        <a href="https://app.safe.global/home?safe=base:0x7CC5fd367e210F4678Bcfca054cbe0F87291E355" target="_blank" class="badge" style="text-decoration: none; font-size: 0.85rem; padding: 8px 16px; border-color: var(--accent); color: var(--accent); background: rgba(16, 185, 129, 0.1);">
+          Inspect Safe 2/2 Multi-Sig Vault
+        </a>
+      </div>
+    </div>
+  </main>
+
+</body>
+</html>
