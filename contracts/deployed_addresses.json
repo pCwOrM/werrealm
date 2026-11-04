@@ -27,6 +27,9 @@
     "tx_hash": "0x0a6bb12d9fe5c1ff7b6a3728d3f5dac40f0790df993025936ee7a4b272e467b7",
     "block_number": 53506209,
     "timestamp": 1793801809,
-    "explorer": "https://basescan.org/address/0x839A6d7E726D60EA2B587e793aE36342297e8C63"
+    "explorer": "https://basescan.org/address/0x839A6d7E726D60EA2B587e793aE36342297e8C63",
+    "locked_amount_werr": 40000000.0,
+    "funding_tx_hash": "0xdae1e4bad42417dacef0cd39b3b406d8480eb42f3330791c19e64feed7abccf0",
+    "funding_block": 53508179
   }
 }

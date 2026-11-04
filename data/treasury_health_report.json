@@ -1,7 +1,7 @@
 {
   "version": "v1.1.0-Live-RPC-Auditor",
-  "timestamp_utc": "2026-11-04T14:50:01Z",
-  "block_number": 53507233,
+  "timestamp_utc": "2026-11-04T15:24:12Z",
+  "block_number": 53508260,
   "chain_id": 8453,
   "token_contract": "0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2",
   "total_supply_werr": 1000000000.0,
@@ -18,9 +18,9 @@
       "address": "0x803a439fa8F7cf078302b51111Ae003b5221FC19",
       "label": "Werrealm Genesis EOA Key (Founder & Operational Reserve)",
       "type": "Genesis Founder EOA",
-      "balance_wei": "49900000000000000000000000",
-      "balance_werr": 49900000.0,
-      "percentage_of_supply": 4.99
+      "balance_wei": "9900000000000000000000000",
+      "balance_werr": 9900000.0,
+      "percentage_of_supply": 0.99
     },
     "bekirhan_alpha": {
       "address": "0xB89AecB2A19CFCc13EE060154A1eAbc42C94485f",
@@ -50,18 +50,18 @@
       "address": "0x839A6d7E726D60EA2B587e793aE36342297e8C63",
       "label": "WerrTreasuryTimelock (90d Cliff / 24m Linear Vesting)",
       "type": "Immutable Vesting Smart Contract",
-      "balance_wei": "0",
-      "balance_werr": 0.0,
-      "percentage_of_supply": 0.0
+      "balance_wei": "40000000000000000000000000",
+      "balance_werr": 40000000.0,
+      "percentage_of_supply": 4.0
     }
   },
   "metrics": {
     "safe_multisig_werr": 949501000.0,
     "safe_multisig_pct": 94.9501,
-    "treasury_reserve_werr": 49900000.0,
-    "treasury_reserve_pct": 4.99,
-    "timelock_vesting_werr": 0.0,
-    "timelock_vesting_pct": 0.0,
+    "treasury_reserve_werr": 9900000.0,
+    "treasury_reserve_pct": 0.99,
+    "timelock_vesting_werr": 40000000.0,
+    "timelock_vesting_pct": 4.0,
     "stakeholder_holding_werr": 500000.0,
     "stakeholder_holding_pct": 0.05,
     "other_circulating_werr": 0.0,
