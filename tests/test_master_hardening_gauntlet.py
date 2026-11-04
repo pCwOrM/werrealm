@@ -93,10 +93,11 @@ class TestWerrealmHardeningGauntlet(unittest.TestCase):
         self.assertEqual(rep["chain_id"], 8453)
         
         m = rep["metrics"]
-        # Genesis EOA + Safe Multisig toplam rezerv denkliği
-        total_reserve = m["treasury_reserve_werr"] + m["safe_multisig_werr"]
-        self.assertEqual(total_reserve, 999500000.0)
-        self.assertGreaterEqual(m["safe_multisig_werr"], 1000.0, "Safe Multisig pilot transferi teyit edilemedi!")
+        # Genesis EOA + Safe Multisig + Dead Burn toplam rezerv denkliği
+        total_reserve_and_burned = m["treasury_reserve_werr"] + m["safe_multisig_werr"] + m["burned_werr"]
+        self.assertEqual(total_reserve_and_burned, 999500000.0)
+        self.assertGreaterEqual(m["safe_multisig_werr"], 900000000.0, "Safe Multisig ana hazine rezervi teyit edilemedi!")
+        self.assertGreaterEqual(m["burned_werr"], 99000.0, "Genesis Burn #1 (99,000 WERR) teyit edilemedi!")
         self.assertEqual(m["stakeholder_holding_werr"], 500000.0)
         self.assertEqual(m["total_accounted_pct"], 100.0)
 
