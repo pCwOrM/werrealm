@@ -17,6 +17,19 @@
     "timestamp": 1793241894,
     "explorer": "https://basescan.org/address/0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2"
   },
+  "base_mainnet_safe_multisig": {
+    "contract": "GnosisSafeProxy_v1_3_0",
+    "address": "0x7CC5fd367e210F4678Bcfca054cbe0F87291E355",
+    "threshold": "2/3",
+    "owners": [
+      "0x803a439fa8F7cf078302b51111Ae003b5221FC19",
+      "0x2034422F8bA7A38981a0d4e7dC3ED80FE859c0c2",
+      "0xA089377506eDAeE71D90CdfC5dDc84E24D5C0024"
+    ],
+    "locked_amount_werr": 949501000.0,
+    "upgrade_2_of_3_tx": "0x72197374911008a5d6122543f5f3b1eee5062817e96f1d5eb829d1961e4cb4fe",
+    "explorer": "https://basescan.org/address/0x7CC5fd367e210F4678Bcfca054cbe0F87291E355"
+  },
   "base_mainnet_timelock": {
     "contract": "WerrTreasuryTimelock",
     "address": "0x839A6d7E726D60EA2B587e793aE36342297e8C63",
@@ -31,5 +44,15 @@
     "locked_amount_werr": 40000000.0,
     "funding_tx_hash": "0xdae1e4bad42417dacef0cd39b3b406d8480eb42f3330791c19e64feed7abccf0",
     "funding_block": 53508179
+  },
+  "base_mainnet_dex_pools": {
+    "dex": "Aerodrome Finance (Base Mainnet)",
+    "router": "0xcF77a3Ba9A5CA399B7c97c74d54e5b1Beb874E43",
+    "factory": "0x420DD381b31aEf6683db6B902084cB0FFECe40Da",
+    "vamm_werr_usdc_pool": "0xdA15b610f7De7A494CD1F7f80B6B73E8b34108A5",
+    "vamm_werr_weth_pool": "0x53D7Ff2ef9B02860bf9F476602832f75594Bfa06",
+    "usdc_token": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "weth_token": "0x4200000000000000000000000000000000000006",
+    "genesis_reference_price_usd": 0.001
   }
 }

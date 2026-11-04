@@ -1262,8 +1262,18 @@
         const m = data.metrics || {};
         const w = data.werralim_living_cell || {};
         const pill = document.querySelector('.hero .pill');
+        let priceTag = '$0.0010 REF';
+        try {
+          const mRes = await fetch('https://radar.werracle.com/v1/radar/market/ticker', { mode: 'cors' });
+          if (mRes.ok) {
+            const mData = await mRes.json();
+            if (mData.valuation && mData.valuation.price_usd) {
+              priceTag = '$' + Number(mData.valuation.price_usd).toFixed(4) + ' (' + (mData.valuation.market_status === 'ACTIVE_DEX_TRADING' ? 'DEX LIVE' : 'GENESIS REF') + ')';
+            }
+          }
+        } catch (e) {}
         if (pill && m.effective_circulating_werr && w.heartbeats) {
-          pill.innerHTML = '<span class="pill-dot"></span> PHASE 1 LIVE · ' + Number(m.effective_circulating_werr).toLocaleString('en-US') + ' ACTIVE $WERR · WERRALIM HEARTBEAT #' + Number(w.heartbeats).toLocaleString('en-US');
+          pill.innerHTML = '<span class="pill-dot"></span> PHASE 1 LIVE · ' + Number(m.effective_circulating_werr).toLocaleString('en-US') + ' ACTIVE $WERR · ' + priceTag + ' · HEARTBEAT #' + Number(w.heartbeats).toLocaleString('en-US');
         }
       } catch (err) {
         // Fallback to static verified snapshot
