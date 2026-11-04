@@ -5,17 +5,17 @@
   "fiscal_year": 2026,
   "period": "2026-11",
   "currency": "USD",
-  "last_updated": "2026-11-04T10:26:09Z",
+  "last_updated": "2026-11-04T18:32:58Z",
   "accounting_standard": "IFRS 15 / IAS 24 Compliant Disclosure (Related-Party & Pilot Commercial Telemetry Inflow)",
   "summary": {
     "total_gross_revenue_usd": 598.0,
-    "total_operating_expenses_usd": 468.0,
-    "net_operational_surplus_usd": 130.0,
-    "operating_margin_percentage": 21.74,
+    "total_operating_expenses_usd": 498.0,
+    "net_operational_surplus_usd": 100.0,
+    "operating_margin_percentage": 16.72,
     "financial_health": "SUSTAINABLE_PILOT_PHASE",
-    "allocated_burn_reserve_usd": 130.0,
+    "allocated_burn_reserve_usd": 100.0,
     "total_werr_burned_to_date": 99000.0,
-    "notes": "Verified cash inflows cover 100% of bare-metal infrastructure and leave +$130 net surplus earmarked for deflationary token sink."
+    "notes": "Verified cash inflows ($598) cover 100% of bare-metal infrastructure, domain & tooling ($498) and leave +$100 net surplus earmarked for deflationary token sink."
   },
   "incomes": [
     {
@@ -78,14 +78,23 @@
       "period": "2026-11",
       "due_date": "2026-11-30",
       "status": "ACCRUED"
+    },
+    {
+      "id": "EXP-2026-11-004",
+      "category": "Domain & DNS Infrastructure",
+      "item": "werrealm.network Sovereign Domain Registration & DNS (1 Year)",
+      "amount_usd": 30.0,
+      "period": "2026-11",
+      "due_date": "2026-11-04",
+      "status": "PAID"
     }
   ],
   "token_burn_strategy": {
     "burn_policy": "HYBRID_SOVEREIGN_BURN",
     "description": "1) Immediate Proof-of-Sale Burn anchored with invoice hash on-chain + 2) 100% of Net Monthly Operational Surplus allocated to burn reserve",
     "dead_address": "0x000000000000000000000000000000000000dEaD",
-    "current_surplus_usd": 130.0,
-    "target_burn_werr_nominal": 130000.0,
+    "current_surplus_usd": 100.0,
+    "target_burn_werr_nominal": 100000.0,
     "burn_events": [
       {
         "event_id": "BURN-2026-11-001",
