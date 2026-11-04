@@ -78,12 +78,14 @@ def keccak_256(data: bytes) -> bytes:
     return bytes(out[:32])
 
 class WerrBurnWatcher:
-    VERSION = "v1.1.0-Daemon-Production"
+    VERSION = "v1.2.0-Daemon-Production"
     CONTRACT_ADDRESS = "0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2"
     
     # Event Topic0 Keccak-256 Hashes
     TOPIC_ATP_BURN = "0x" + keccak_256(b"ATPBurnInitiated(address,uint256,uint256)").hex()
     TOPIC_REFLEX_BURN = "0x" + keccak_256(b"AnswerrReflexBurned(address,uint256,bytes32)").hex()
+    TOPIC_TRANSFER = "0x" + keccak_256(b"Transfer(address,address,uint256)").hex()
+    DEAD_ADDRESS_TOPIC = "0x000000000000000000000000000000000000000000000000000000000000dead"
     
     # RPC Havuzu (Yüksek Erişilebilirlik)
     DEFAULT_RPCS = [
@@ -193,7 +195,7 @@ class WerrBurnWatcher:
                 "address": self.CONTRACT_ADDRESS,
                 "fromBlock": hex(cur_from),
                 "toBlock": hex(cur_to),
-                "topics": [[self.TOPIC_ATP_BURN, self.TOPIC_REFLEX_BURN]]
+                "topics": [[self.TOPIC_ATP_BURN, self.TOPIC_REFLEX_BURN, self.TOPIC_TRANSFER]]
             }]
             
             try:
@@ -255,32 +257,58 @@ class WerrBurnWatcher:
                 "block": block_num
             }
 
+        elif t0 == self.TOPIC_TRANSFER.lower() and len(topics) > 2:
+            to_topic = topics[2].lower()
+            if to_topic == self.DEAD_ADDRESS_TOPIC:
+                werr_amount = int(data_hex[:64], 16) if data_hex else 0
+                atp_amount = werr_amount // (10**9)
+                return {
+                    "type": "DEAD_TRANSFER_BURN",
+                    "caller": caller,
+                    "werr_amount": werr_amount,
+                    "atp_credited": atp_amount,
+                    "tx_hash": tx_hash,
+                    "block": block_num
+                }
+
         return None
 
     def _apply_credit(self, event: Dict[str, Any]):
-        caller = event["caller"]
+        caller = event["caller"].lower()
         now = time.time()
         
-        # 1. JSON Bellek Guncelleme
+        # 1. JSON Bellek Guncelleme (Idempotent)
         user_record = self.credits.get(caller, {
             "atp_balance": 0,
             "total_werr_burned_wei": 0,
             "burn_history": []
         })
 
+        existing_txs = {h.get("tx_hash", "").lower() for h in user_record.get("burn_history", [])}
+        if event["tx_hash"].lower() in existing_txs:
+            return
+
         if event["type"] == "ATP_BURN":
             user_record["atp_balance"] += event["atp_credited"]
             user_record["total_werr_burned_wei"] += event["werr_amount"]
-            self.state["total_atp_credited"] += event["atp_credited"]
+            self.state["total_atp_credited"] = self.state.get("total_atp_credited", 0) + event["atp_credited"]
         elif event["type"] == "REFLEX_BURN":
             user_record["total_werr_burned_wei"] += event["werr_amount"]
-            self.state["total_reflex_burned"] += event["werr_amount"]
+            self.state["total_reflex_burned"] = self.state.get("total_reflex_burned", 0) + round(event["werr_amount"] / 10**18, 4)
+        elif event["type"] == "DEAD_TRANSFER_BURN":
+            user_record["atp_balance"] += event["atp_credited"]
+            user_record["total_werr_burned_wei"] += event["werr_amount"]
+            self.state["total_atp_credited"] = self.state.get("total_atp_credited", 0) + event["atp_credited"]
+            self.state["total_reflex_burned"] = round(user_record["total_werr_burned_wei"] / 10**18, 4)
+            self.state["last_burn_tx"] = event["tx_hash"]
 
         user_record["burn_history"].append({
             "type": event["type"],
             "tx_hash": event["tx_hash"],
             "block": event["block"],
             "werr_wei": event["werr_amount"],
+            "werr_burned": round(event["werr_amount"] / 10**18, 4),
+            "atp_credited": event.get("atp_credited", 0),
             "timestamp": int(now)
         })
         self.credits[caller] = user_record
@@ -305,17 +333,48 @@ class WerrBurnWatcher:
 
         print(f"[OK] On-Chain Kredi Islendi: {caller} -> +{event.get('atp_credited', 0):,} ATP (Tx: {event['tx_hash'][:16]}...)")
 
+    def consume_atp(self, caller_address: str, amount_atp: int, reason: str = "WERRALIM_METABOLIC_SURGE") -> Dict[str, Any]:
+        """Werralim Living Cell veya API kapısı tarafından ATP tüketimini on-chain kredi havuzuna işler."""
+        addr = caller_address.lower()
+        if addr not in self.credits and self.credits:
+            # Havuzdaki ana hazine / kurucu yakım havuzunu varsayılan olarak kullan
+            addr = next(iter(self.credits.keys()))
+        rec = self.credits.get(addr, {
+            "atp_balance": 0,
+            "total_atp_consumed": 0,
+            "total_werr_burned_wei": 0,
+            "burn_history": []
+        })
+        avail = int(rec.get("atp_balance", 0))
+        deducted = min(avail, max(0, int(amount_atp)))
+        rec["atp_balance"] = avail - deducted
+        rec["total_atp_consumed"] = int(rec.get("total_atp_consumed", 0)) + int(amount_atp)
+        self.credits[addr] = rec
+        self.state["total_atp_consumed"] = int(self.state.get("total_atp_consumed", 0)) + int(amount_atp)
+        self._save_json(self.credits_file, self.credits)
+        self._save_json(self.state_file, self.state)
+        return {
+            "pool_address": addr,
+            "requested_atp": amount_atp,
+            "deducted_from_onchain_pool": deducted,
+            "remaining_atp_balance": rec["atp_balance"],
+            "total_atp_consumed": rec["total_atp_consumed"],
+            "reason": reason
+        }
+
     def get_user_atp_balance(self, client_address: str) -> Dict[str, Any]:
         """İstemcinin birikmiş ATP ve yakılmış WERR dökümünü döner."""
         addr = client_address.lower()
         rec = self.credits.get(addr, {
             "atp_balance": 0,
+            "total_atp_consumed": 0,
             "total_werr_burned_wei": 0,
             "burn_history": []
         })
         return {
             "address": client_address,
             "atp_balance": rec.get("atp_balance", 0),
+            "total_atp_consumed": rec.get("total_atp_consumed", 0),
             "total_werr_burned": round(rec.get("total_werr_burned_wei", 0) / 10**18, 4),
             "total_burn_events": len(rec.get("burn_history", [])),
             "recent_burns": rec.get("burn_history", [])[-5:]

@@ -1,1 +1,17 @@
-{}
+{
+  "0x803a439fa8f7cf078302b51111ae003b5221fc19": {
+    "atp_balance": 99000000000000,
+    "total_werr_burned_wei": 99000000000000000000000,
+    "burn_history": [
+      {
+        "type": "DEAD_TRANSFER_BURN",
+        "tx_hash": "0xfa96b3d04a2d6e8066abd92345b16c5e5d63bc4539a18cee78f699f265117e68",
+        "block": 53476942,
+        "werr_wei": 99000000000000000000000,
+        "werr_burned": 99000.0,
+        "atp_credited": 99000000000000,
+        "timestamp": 1793791461
+      }
+    ]
+  }
+}
