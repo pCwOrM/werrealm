@@ -152,6 +152,20 @@ class WerrBurnWatcher:
                     );
                 """)
                 conn.execute("CREATE INDEX IF NOT EXISTS idx_burn_caller ON werr_burn_events(caller_address);")
+                for caller_addr, rec in (self.credits or {}).items():
+                    for h in rec.get("burn_history", []):
+                        if h.get("tx_hash"):
+                            conn.execute("""
+                                INSERT OR IGNORE INTO werr_burn_events (
+                                    tx_hash, caller_address, event_type, werr_amount_wei,
+                                    atp_credited, query_hash, block_number, created_at
+                                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                            """, (
+                                h["tx_hash"], caller_addr.lower(), h.get("type", "BURN"),
+                                str(h.get("werr_wei", 0)), int(h.get("atp_credited", 0)),
+                                h.get("query_hash", ""), int(h.get("block", 0)),
+                                float(h.get("timestamp", time.time()))
+                            ))
                 conn.commit()
         except Exception as e:
             # SQLite erişilemezse bile JSON fallback devrededir

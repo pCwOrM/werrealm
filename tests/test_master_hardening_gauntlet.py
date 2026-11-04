@@ -148,5 +148,30 @@ class TestWerrealmHardeningGauntlet(unittest.TestCase):
         self.assertTrue(sec["permit_nonces_clean"], "Kritik cuzdanlarda beklenmeyen EIP-2612 permit nonce artisi!")
         self.assertGreaterEqual(sec["total_smart_contract_locked_pct"], 98.9)
 
+    def test_09_phase3_dex_and_buyback_burn_engine(self):
+        """Phase 3 Aerodrome CREATE2 havuz adreslerini, atomik LP calldata ve burnForReflex motorunu dogrular."""
+        from scripts.dex_liquidity_launcher import WerrDexLiquidityLauncher
+        from services.werr_buyback_burn_engine import WerrBuybackBurnEngine
+
+        launcher = WerrDexLiquidityLauncher()
+        calldata_pkg = launcher.build_atomic_aerodrome_launch_calldata(500000.0, 500.0)
+        self.assertEqual(
+            calldata_pkg["deterministic_pool_address"].lower(),
+            "0xda15b610f7de7a494cd1f7f80b6b73e8b34108a5"
+        )
+        self.assertEqual(calldata_pkg["implied_werr_price_usd"], 0.001)
+        self.assertEqual(len(calldata_pkg["transactions"]), 3)
+
+        engine = WerrBuybackBurnEngine()
+        rep = engine.generate_surplus_buyback_report()
+        self.assertEqual(rep["already_burned_werr"], 99000.0)
+        self.assertEqual(rep["remaining_period_burn_werr"], 31000.0)
+        self.assertEqual(rep["next_reflex_burn_instruction"]["selector"], "0x828d7c72")
+        self.assertEqual(
+            rep["next_reflex_burn_instruction"]["werr_amount_wei"],
+            "31000000000000000000000"
+        )
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+

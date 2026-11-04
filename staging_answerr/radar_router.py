@@ -3112,3 +3112,35 @@ def get_werr_circulating_supply_plain():
     except Exception:
         pass
     return PlainTextResponse("999901000", headers={"Access-Control-Allow-Origin": "*"})
+
+_WERREALM_MARKET_CACHE = {"ts": 0.0, "data": None}
+
+@radar_router.get("/market/ticker", summary="Live Base Mainnet DEX Liquidity, Price Discovery & Buyback-Burn Telemetry")
+def get_werr_market_ticker(request: Request):
+    _check_werrealm_public_rate_limit(request)
+    _ensure_werrealm_path()
+    now = time.time()
+    if _WERREALM_MARKET_CACHE["data"] and (now - _WERREALM_MARKET_CACHE["ts"] < 45.0):
+        return JSONResponse(content=_WERREALM_MARKET_CACHE["data"], headers={"Access-Control-Allow-Origin": "*"})
+    try:
+        from scripts.dex_liquidity_launcher import WerrDexLiquidityLauncher
+        from services.werr_buyback_burn_engine import WerrBuybackBurnEngine
+        launcher = WerrDexLiquidityLauncher()
+        status = launcher.get_market_discovery_status()
+        status.pop("seed_tiers_prepared", None)
+        buyback = WerrBuybackBurnEngine().generate_surplus_buyback_report()
+        status["buyback_burn_flywheel"] = {
+            "fiscal_period": buyback["fiscal_period"],
+            "allocated_burn_reserve_usd": buyback["allocated_burn_reserve_usd"],
+            "target_period_burn_werr": buyback["target_period_burn_werr"],
+            "already_burned_werr": buyback["already_burned_werr"],
+            "remaining_period_burn_werr": buyback["remaining_period_burn_werr"],
+            "remaining_surplus_usd": buyback["remaining_surplus_usd"],
+            "next_reflex_query_hash": buyback["next_reflex_burn_instruction"]["query_hash_bytes32"]
+        }
+        _WERREALM_MARKET_CACHE["ts"] = now
+        _WERREALM_MARKET_CACHE["data"] = status
+        return JSONResponse(content=status, headers={"Access-Control-Allow-Origin": "*"})
+    except Exception:
+        raise HTTPException(status_code=500, detail="Market ticker audit error")
+

@@ -1,0 +1,165 @@
+{
+  "version": "v1.0.0-Phase3-DEX-Engine",
+  "timestamp_utc": "2026-11-04T17:39:31Z",
+  "chain_id": 8453,
+  "network": "Base Mainnet",
+  "token": {
+    "name": "Werrium",
+    "symbol": "WERR",
+    "decimals": 18,
+    "contract_address": "0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2",
+    "total_supply": 1000000000.0,
+    "circulating_supply": 999901000.0,
+    "burned_supply": 99000.0,
+    "smart_contract_locked_supply": 989501000.0,
+    "smart_contract_locked_pct": 98.9501,
+    "liquid_operational_and_lp_reserve": 10400000.0
+  },
+  "valuation": {
+    "price_usd": 0.001,
+    "price_source": "GENESIS_LEDGER_REFERENCE_RATE",
+    "market_status": "PRE_SEED_READY_ATOMIC_LAUNCH",
+    "fdv_usd": 1000000.0,
+    "circulating_market_cap_usd": 999901.0,
+    "free_float_market_cap_usd": 10400.0
+  },
+  "dex_pools": {
+    "aerodrome_werr_usdc": {
+      "dex": "Aerodrome Finance vAMM",
+      "pair": "WERR/USDC",
+      "pool_address": "0xdA15b610f7De7A494CD1F7f80B6B73E8b34108A5",
+      "router_address": "0xcF77a3Ba9A5CA399B7c97c74d54e5b1Beb874E43",
+      "deployed": false,
+      "reserve_werr": 0.0,
+      "reserve_usdc": 0.0,
+      "lp_total_supply": 0.0,
+      "dexscreener_url": "https://dexscreener.com/base/0xdA15b610f7De7A494CD1F7f80B6B73E8b34108A5",
+      "geckoterminal_url": "https://www.geckoterminal.com/base/pools/0xdA15b610f7De7A494CD1F7f80B6B73E8b34108A5"
+    },
+    "aerodrome_werr_weth": {
+      "dex": "Aerodrome Finance vAMM",
+      "pair": "WERR/WETH",
+      "pool_address": "0x53D7Ff2ef9B02860bf9F476602832f75594Bfa06",
+      "router_address": "0xcF77a3Ba9A5CA399B7c97c74d54e5b1Beb874E43",
+      "deployed": false,
+      "reserve_werr": 0.0,
+      "reserve_weth": 0.0,
+      "lp_total_supply": 0.0,
+      "dexscreener_url": "https://dexscreener.com/base/0x53D7Ff2ef9B02860bf9F476602832f75594Bfa06",
+      "geckoterminal_url": "https://www.geckoterminal.com/base/pools/0x53D7Ff2ef9B02860bf9F476602832f75594Bfa06"
+    }
+  },
+  "listing_endpoints": {
+    "total_supply_api": "https://radar.werracle.com/v1/radar/supply/total",
+    "circulating_supply_api": "https://radar.werracle.com/v1/radar/supply/circulating",
+    "treasury_health_api": "https://radar.werracle.com/v1/radar/treasury/health",
+    "market_ticker_api": "https://radar.werracle.com/v1/radar/market/ticker"
+  },
+  "seed_tiers_prepared": {
+    "tier_1_micro_discovery": {
+      "dex": "Aerodrome Finance (Base Mainnet)",
+      "router": "0xcF77a3Ba9A5CA399B7c97c74d54e5b1Beb874E43",
+      "deterministic_pool_address": "0xdA15b610f7De7A494CD1F7f80B6B73E8b34108A5",
+      "pair": "vAMM-WERR/USDC",
+      "werr_deposit": 100000.0,
+      "usdc_deposit": 100.0,
+      "implied_werr_price_usd": 0.001,
+      "implied_fdv_usd": 1000000.0,
+      "lp_recipient_lock": "0x000000000000000000000000000000000000dEaD",
+      "anti_sniping_mode": "ATOMIC_CREATE_AND_MINT_SINGLE_TX",
+      "transactions": [
+        {
+          "step": 1,
+          "description": "Approve 100,000 WERR for Aerodrome Router",
+          "to": "0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2",
+          "value": "0x0",
+          "data": "0x095ea7b3000000000000000000000000cf77a3ba9a5ca399b7c97c74d54e5b1beb874e4300000000000000000000000000000000000000000000152d02c7e14af6800000"
+        },
+        {
+          "step": 2,
+          "description": "Approve 100.00 USDC for Aerodrome Router",
+          "to": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "value": "0x0",
+          "data": "0x095ea7b3000000000000000000000000cf77a3ba9a5ca399b7c97c74d54e5b1beb874e430000000000000000000000000000000000000000000000000000000005f5e100"
+        },
+        {
+          "step": 3,
+          "description": "Atomic Pool Creation + Initial Liquidity Deposit + Direct LP Lock",
+          "to": "0xcF77a3Ba9A5CA399B7c97c74d54e5b1Beb874E43",
+          "value": "0x0",
+          "data": "0x5a47ddc3000000000000000000000000ffa2c95b68b76af00fbd84295cba5e5268a996d2000000000000000000000000833589fcd6edb6e08f4c7c32d4f71b54bda02913000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000152d02c7e14af68000000000000000000000000000000000000000000000000000000000000005f5e100000000000000000000000000000000000000000000001511e7e30a68073000000000000000000000000000000000000000000000000000000000000005ee3fe0000000000000000000000000000000000000000000000000000000000000dead000000000000000000000000000000000000000000000000000000006aeb7283"
+        }
+      ]
+    },
+    "tier_2_standard_pilot": {
+      "dex": "Aerodrome Finance (Base Mainnet)",
+      "router": "0xcF77a3Ba9A5CA399B7c97c74d54e5b1Beb874E43",
+      "deterministic_pool_address": "0xdA15b610f7De7A494CD1F7f80B6B73E8b34108A5",
+      "pair": "vAMM-WERR/USDC",
+      "werr_deposit": 500000.0,
+      "usdc_deposit": 500.0,
+      "implied_werr_price_usd": 0.001,
+      "implied_fdv_usd": 1000000.0,
+      "lp_recipient_lock": "0x000000000000000000000000000000000000dEaD",
+      "anti_sniping_mode": "ATOMIC_CREATE_AND_MINT_SINGLE_TX",
+      "transactions": [
+        {
+          "step": 1,
+          "description": "Approve 500,000 WERR for Aerodrome Router",
+          "to": "0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2",
+          "value": "0x0",
+          "data": "0x095ea7b3000000000000000000000000cf77a3ba9a5ca399b7c97c74d54e5b1beb874e430000000000000000000000000000000000000000000069e10de76676d0800000"
+        },
+        {
+          "step": 2,
+          "description": "Approve 500.00 USDC for Aerodrome Router",
+          "to": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "value": "0x0",
+          "data": "0x095ea7b3000000000000000000000000cf77a3ba9a5ca399b7c97c74d54e5b1beb874e43000000000000000000000000000000000000000000000000000000001dcd6500"
+        },
+        {
+          "step": 3,
+          "description": "Atomic Pool Creation + Initial Liquidity Deposit + Direct LP Lock",
+          "to": "0xcF77a3Ba9A5CA399B7c97c74d54e5b1Beb874E43",
+          "value": "0x0",
+          "data": "0x5a47ddc3000000000000000000000000ffa2c95b68b76af00fbd84295cba5e5268a996d2000000000000000000000000833589fcd6edb6e08f4c7c32d4f71b54bda0291300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000069e10de76676d0800000000000000000000000000000000000000000000000000000000000001dcd6500000000000000000000000000000000000000000000006959876f340823f00000000000000000000000000000000000000000000000000000000000001da73f60000000000000000000000000000000000000000000000000000000000000dead000000000000000000000000000000000000000000000000000000006aeb7283"
+        }
+      ]
+    },
+    "tier_3_full_reserve": {
+      "dex": "Aerodrome Finance (Base Mainnet)",
+      "router": "0xcF77a3Ba9A5CA399B7c97c74d54e5b1Beb874E43",
+      "deterministic_pool_address": "0xdA15b610f7De7A494CD1F7f80B6B73E8b34108A5",
+      "pair": "vAMM-WERR/USDC",
+      "werr_deposit": 1000000.0,
+      "usdc_deposit": 1000.0,
+      "implied_werr_price_usd": 0.001,
+      "implied_fdv_usd": 1000000.0,
+      "lp_recipient_lock": "0x000000000000000000000000000000000000dEaD",
+      "anti_sniping_mode": "ATOMIC_CREATE_AND_MINT_SINGLE_TX",
+      "transactions": [
+        {
+          "step": 1,
+          "description": "Approve 1,000,000 WERR for Aerodrome Router",
+          "to": "0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2",
+          "value": "0x0",
+          "data": "0x095ea7b3000000000000000000000000cf77a3ba9a5ca399b7c97c74d54e5b1beb874e4300000000000000000000000000000000000000000000d3c21bcecceda1000000"
+        },
+        {
+          "step": 2,
+          "description": "Approve 1,000.00 USDC for Aerodrome Router",
+          "to": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "value": "0x0",
+          "data": "0x095ea7b3000000000000000000000000cf77a3ba9a5ca399b7c97c74d54e5b1beb874e43000000000000000000000000000000000000000000000000000000003b9aca00"
+        },
+        {
+          "step": 3,
+          "description": "Atomic Pool Creation + Initial Liquidity Deposit + Direct LP Lock",
+          "to": "0xcF77a3Ba9A5CA399B7c97c74d54e5b1Beb874E43",
+          "value": "0x0",
+          "data": "0x5a47ddc3000000000000000000000000ffa2c95b68b76af00fbd84295cba5e5268a996d2000000000000000000000000833589fcd6edb6e08f4c7c32d4f71b54bda02913000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000d3c21bcecceda1000000000000000000000000000000000000000000000000000000000000003b9aca0000000000000000000000000000000000000000000000d2b30ede681047e00000000000000000000000000000000000000000000000000000000000003b4e7ec0000000000000000000000000000000000000000000000000000000000000dead000000000000000000000000000000000000000000000000000000006aeb7283"
+        }
+      ]
+    }
+  }
+}
