@@ -2966,32 +2966,65 @@ def get_live_multichain_telemetry(request: Request, events_limit: int = Query(12
 # WERREALM SOVEREIGN TOKENOMICS, ON-CHAIN STAKE GATE & TREASURY AUDIT ROUTES
 # ============================================================================
 import sys
+import re as _re
 from fastapi.responses import PlainTextResponse, JSONResponse
 
 _WERREALM_HEALTH_CACHE = {"ts": 0.0, "data": None}
+_WERREALM_EVM_ADDR_RE = _re.compile(r"^0x[a-fA-F0-9]{40}$")
+_WERREALM_STAKE_GATE_SINGLETON = None
+_WERREALM_IP_BUCKETS = {}
+_WERREALM_RATE_LIMIT_PER_MIN = 30
 
 def _ensure_werrealm_path():
     if "/opt/apps/werrealm" not in sys.path:
         sys.path.insert(0, "/opt/apps/werrealm")
 
+def _check_werrealm_public_rate_limit(request: Request):
+    ip = (request.headers.get("cf-connecting-ip") or request.headers.get("x-forwarded-for") or (request.client.host if request.client else "0.0.0.0")).split(",")[0].strip()
+    now_min = int(time.time() // 60)
+    bucket = _WERREALM_IP_BUCKETS.get(ip)
+    if not bucket or bucket[0] != now_min:
+        if len(_WERREALM_IP_BUCKETS) > 4096:
+            _WERREALM_IP_BUCKETS.clear()
+        _WERREALM_IP_BUCKETS[ip] = [now_min, 1]
+    else:
+        bucket[1] += 1
+        if bucket[1] > _WERREALM_RATE_LIMIT_PER_MIN:
+            raise HTTPException(status_code=429, detail="Rate limit exceeded on public Werrealm audit endpoint (max 30 req/min)")
+
+def _validate_evm_param(address: str) -> str:
+    if not isinstance(address, str) or not _WERREALM_EVM_ADDR_RE.match(address.strip()):
+        raise HTTPException(status_code=400, detail="Invalid EVM address format (expected 0x followed by 40 hex characters)")
+    return address.strip()
+
 @radar_router.get("/stake/status", summary="Verify On-Chain $WERR Stake & Sovereign Tier Status")
 def get_werr_stake_status(
+    request: Request,
     address: str = Query(..., description="Client EVM wallet address (0x...)"),
     service: str = Query("RADAR_DaaS", description="Target service (RADAR_DaaS or ANSWERR_GATE)"),
     endpoint: str = Query("/v1/radar/neural-alpha", description="Requested endpoint path")
 ):
+    _check_werrealm_public_rate_limit(request)
+    clean_addr = _validate_evm_param(address)
     _ensure_werrealm_path()
+    global _WERREALM_STAKE_GATE_SINGLETON
     try:
-        from gateway.werr_stake_gate import WerrStakeGate
-        gate = WerrStakeGate()
-        return gate.verify_request(address, service, endpoint)
+        if _WERREALM_STAKE_GATE_SINGLETON is None:
+            from gateway.werr_stake_gate import WerrStakeGate
+            _WERREALM_STAKE_GATE_SINGLETON = WerrStakeGate()
+        return _WERREALM_STAKE_GATE_SINGLETON.verify_request(clean_addr, service[:32], endpoint[:64])
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Stake gate verification error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Stake gate verification error")
 
 @radar_router.get("/stake/credits", summary="Query Accumulated On-Chain ATP Metabolic Credits & Burn History")
 def get_werr_metabolic_credits(
+    request: Request,
     address: str = Query(..., description="Client EVM wallet address (0x...)")
 ):
+    _check_werrealm_public_rate_limit(request)
+    clean_addr = _validate_evm_param(address)
     _ensure_werrealm_path()
     try:
         from services.werr_burn_watcher import WerrBurnWatcher
@@ -2999,12 +3032,15 @@ def get_werr_metabolic_credits(
             data_dir="/opt/apps/werrealm/data",
             db_path="/var/lib/werracle-health/werracle_api_keys.db"
         )
-        return watcher.get_user_atp_balance(address)
+        return watcher.get_user_atp_balance(clean_addr)
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Metabolic credit query error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Metabolic credit query error")
 
 @radar_router.get("/treasury/health", summary="Live On-Chain $WERR Treasury, Supply & Werralim Living Cell Audit")
-def get_werr_treasury_health():
+def get_werr_treasury_health(request: Request):
+    _check_werrealm_public_rate_limit(request)
     _ensure_werrealm_path()
     now = time.time()
     if _WERREALM_HEALTH_CACHE["data"] and (now - _WERREALM_HEALTH_CACHE["ts"] < 45.0):
@@ -3022,7 +3058,7 @@ def get_werr_treasury_health():
             except Exception:
                 pass
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Treasury health audit error: {str(e)}")
+            raise HTTPException(status_code=500, detail="Treasury health audit error")
 
     werralim_summary = {"status": "OFFLINE"}
     shm_p = "/dev/shm/werracle_living_arena/living_organism_state.json"
