@@ -1,14 +1,14 @@
 {
   "version": "v1.1.0-Live-RPC-Auditor",
-  "timestamp_utc": "2026-11-04T14:20:57Z",
-  "block_number": 53506363,
+  "timestamp_utc": "2026-11-04T14:50:01Z",
+  "block_number": 53507233,
   "chain_id": 8453,
   "token_contract": "0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2",
   "total_supply_werr": 1000000000.0,
   "tracked_wallets": {
     "safe_multisig": {
       "address": "0x7CC5fd367e210F4678Bcfca054cbe0F87291E355",
-      "label": "Werrealm Sovereign Treasury Safe (2/2 Multisig)",
+      "label": "Werrealm Sovereign Treasury Safe (2/3 Multisig)",
       "type": "Institutional Multi-Sig Vault (Active)",
       "balance_wei": "949501000000000000000000000",
       "balance_werr": 949501000.0,

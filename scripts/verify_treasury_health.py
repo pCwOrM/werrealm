@@ -28,7 +28,7 @@ class TreasuryHealthChecker:
     TRACKED_WALLETS = {
         "safe_multisig": {
             "address": "0x7CC5fd367e210F4678Bcfca054cbe0F87291E355",
-            "label": "Werrealm Sovereign Treasury Safe (2/2 Multisig)",
+            "label": "Werrealm Sovereign Treasury Safe (2/3 Multisig)",
             "type": "Institutional Multi-Sig Vault (Active)"
         },
         "genesis_treasury": {
