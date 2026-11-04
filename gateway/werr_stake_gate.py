@@ -15,16 +15,21 @@ Werrealm Ekosisteminin Çift-Kanatlı (Dual-Engine) Erişim, Staking ve Token Ka
 """
 
 import os
+import re
 import json
 import time
 import hashlib
 import requests
 from typing import Dict, Any, Optional, Tuple
 
+EVM_ADDR_RE = re.compile(r"^0x[a-fA-F0-9]{40}$")
+
 class WerrStakeGate:
-    VERSION = "v1.2.0-Live-OnChain"
+    VERSION = "v1.3.0-Live-OnChain-Hardened"
     DEFAULT_WERRIUM_CONTRACT = "0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2"
     DEFAULT_CHAIN_ID = 8453 # Base Mainnet
+    MAX_CACHE_ENTRIES = 2048
+    MAX_SUPPLY_WEI = 1_000_000_000 * 10**18
 
     DEFAULT_RPCS = [
         "https://mainnet.base.org",
@@ -79,12 +84,18 @@ class WerrStakeGate:
             }
         }
 
+    @staticmethod
+    def validate_evm_address(client_address: str) -> str:
+        if not isinstance(client_address, str) or not EVM_ADDR_RE.match(client_address.strip()):
+            raise ValueError("Invalid EVM address format (expected 0x followed by 40 hex chars)")
+        return client_address.strip().lower()
+
     def fetch_onchain_balance(self, client_address: str) -> int:
         """
         Base L2 Mainnet üzerindeki Werrium sözleşmesinden balanceOf(address)
         çağrısını doğrudan JSON-RPC eth_call ile yapar.
         """
-        addr = client_address.lower()
+        addr = self.validate_evm_address(client_address)
         now = time.time()
         
         # Önbellek kontrolü
@@ -94,7 +105,7 @@ class WerrStakeGate:
                 return bal
 
         # eth_call: balanceOf(address) selector is 0x70a08231
-        target_param = addr.replace("0x", "").zfill(64)
+        target_param = addr[2:].zfill(64)
         call_data = "0x70a08231" + target_param
 
         payload = {
@@ -109,10 +120,15 @@ class WerrStakeGate:
             try:
                 res = requests.post(rpc, json=payload, timeout=5)
                 data = res.json()
-                if "result" in data and data["result"] != "0x":
-                    bal_wei = int(data["result"], 16)
-                    self._balance_cache[addr] = (bal_wei, now)
-                    return bal_wei
+                res_hex = data.get("result")
+                if isinstance(res_hex, str) and res_hex.startswith("0x") and len(res_hex) >= 3:
+                    bal_wei = int(res_hex, 16)
+                    if 0 <= bal_wei <= self.MAX_SUPPLY_WEI:
+                        if len(self._balance_cache) >= self.MAX_CACHE_ENTRIES and addr not in self._balance_cache:
+                            oldest_key = next(iter(self._balance_cache))
+                            self._balance_cache.pop(oldest_key, None)
+                        self._balance_cache[addr] = (bal_wei, now)
+                        return bal_wei
             except Exception:
                 continue
 

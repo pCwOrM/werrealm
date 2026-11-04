@@ -1,7 +1,7 @@
 {
   "version": "v1.1.0-Live-RPC-Auditor",
-  "timestamp_utc": "2026-11-04T15:24:12Z",
-  "block_number": 53508260,
+  "timestamp_utc": "2026-11-04T15:47:59Z",
+  "block_number": 53508974,
   "chain_id": 8453,
   "token_contract": "0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2",
   "total_supply_werr": 1000000000.0,
@@ -74,8 +74,13 @@
     "centralization_risk": "RESOLVED_SAFE_ACTIVE",
     "safe_multisig_deployed": true,
     "safe_multisig_address": "0x7CC5fd367e210F4678Bcfca054cbe0F87291E355",
+    "safe_threshold_verified": 2,
+    "safe_owners_count": 3,
     "timelock_vesting_deployed": true,
     "timelock_vesting_address": "0x839A6d7E726D60EA2B587e793aE36342297e8C63",
+    "total_smart_contract_locked_werr": 989501000.0,
+    "total_smart_contract_locked_pct": 98.9501,
+    "permit_nonces_clean": true,
     "recommendation": "Treasury reserve migration complete (Safe multisig holds >90% of supply; Timelock deployed)",
     "contract_verified": true,
     "no_mint_guarantee": true

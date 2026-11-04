@@ -364,7 +364,10 @@ class WerrBurnWatcher:
 
     def get_user_atp_balance(self, client_address: str) -> Dict[str, Any]:
         """İstemcinin birikmiş ATP ve yakılmış WERR dökümünü döner."""
-        addr = client_address.lower()
+        if not isinstance(client_address, str) or len(client_address.strip()) != 42 or not client_address.strip().startswith("0x"):
+            raise ValueError("Invalid EVM address format")
+        addr = client_address.strip().lower()
+        int(addr[2:], 16)  # Strict hex validation
         rec = self.credits.get(addr, {
             "atp_balance": 0,
             "total_atp_consumed": 0,
@@ -372,7 +375,7 @@ class WerrBurnWatcher:
             "burn_history": []
         })
         return {
-            "address": client_address,
+            "address": client_address.strip(),
             "atp_balance": rec.get("atp_balance", 0),
             "total_atp_consumed": rec.get("total_atp_consumed", 0),
             "total_werr_burned": round(rec.get("total_werr_burned_wei", 0) / 10**18, 4),
@@ -381,8 +384,9 @@ class WerrBurnWatcher:
         }
 
     def run_daemon(self, poll_interval: int = 12):
-        """Systemd ve arka plan servisi olarak kesintisiz calisir."""
-        print(f"[*] {self.VERSION} Daemon Baslatildi.")
+        """Systemd ve arka plan servisi olarak kesintisiz calisir (2-blok L2 reorg/replica-lag tamponu ile)."""
+        SAFE_CONFIRMATIONS = 2
+        print(f"[*] {self.VERSION} Daemon Baslatildi (Safe Confirmations: {SAFE_CONFIRMATIONS}).")
         print(f"    - Sozlesme: {self.CONTRACT_ADDRESS} (Base Mainnet)")
         print(f"    - Tarama Araligi: {poll_interval} saniye")
         print(f"    - Durum Dosyasi: {self.state_file}")
@@ -390,11 +394,12 @@ class WerrBurnWatcher:
         while self.running:
             try:
                 latest = self.get_latest_block()
-                last = self.state.get("last_block", latest - 50)
-                if latest > last:
-                    events = self.scan_burn_events(from_block=last + 1, to_block=latest)
+                safe_end = max(0, latest - SAFE_CONFIRMATIONS)
+                last = self.state.get("last_block", safe_end - 50)
+                if safe_end > last:
+                    events = self.scan_burn_events(from_block=last + 1, to_block=safe_end)
                     if events:
-                        print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {len(events)} yeni yakim olayi islendi (Blok: {latest:,}).")
+                        print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {len(events)} yeni yakim olayi islendi (Blok: {safe_end:,}).")
                 time.sleep(poll_interval)
             except KeyboardInterrupt:
                 print("\n[!] Kullanici tarafindan durduruldu.")

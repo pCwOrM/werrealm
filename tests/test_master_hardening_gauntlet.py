@@ -129,5 +129,24 @@ class TestWerrealmHardeningGauntlet(unittest.TestCase):
         self.assertIn('@radar_router.get("/supply/total"', code)
         self.assertIn('@radar_router.get("/supply/circulating"', code)
 
+
+    def test_08_security_invariants_and_input_sanitization(self):
+        """Hex injection, gecersiz EVM adresi reddi, Safe 2/3 esigi ve Permit nonce temizligini dogrular."""
+        gate = WerrStakeGate()
+        watcher = WerrBurnWatcher()
+        for bad_addr in ["0xZZZZ", "0x1234", "'; DROP TABLE werr_burn_events; --", "0x" + "g"*40]:
+            with self.assertRaises(ValueError):
+                gate.fetch_onchain_balance(bad_addr)
+            with self.assertRaises(ValueError):
+                watcher.get_user_atp_balance(bad_addr)
+
+        checker = TreasuryHealthChecker()
+        rep = checker.audit_treasury()
+        sec = rep["security_assessment"]
+        self.assertEqual(sec["safe_threshold_verified"], 2)
+        self.assertEqual(sec["safe_owners_count"], 3)
+        self.assertTrue(sec["permit_nonces_clean"], "Kritik cuzdanlarda beklenmeyen EIP-2612 permit nonce artisi!")
+        self.assertGreaterEqual(sec["total_smart_contract_locked_pct"], 98.9)
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
