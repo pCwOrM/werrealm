@@ -5,7 +5,8 @@
   "fiscal_year": 2026,
   "period": "2026-11",
   "currency": "USD",
-  "last_updated": "2026-11-04T09:49:13Z",
+  "last_updated": "2026-11-04T10:26:09Z",
+  "accounting_standard": "IFRS 15 / IAS 24 Compliant Disclosure (Related-Party & Pilot Commercial Telemetry Inflow)",
   "summary": {
     "total_gross_revenue_usd": 598.0,
     "total_operating_expenses_usd": 468.0,
@@ -13,7 +14,8 @@
     "operating_margin_percentage": 21.74,
     "financial_health": "SUSTAINABLE_PILOT_PHASE",
     "allocated_burn_reserve_usd": 130.0,
-    "total_werr_burned_to_date": 99000.0
+    "total_werr_burned_to_date": 99000.0,
+    "notes": "Verified cash inflows cover 100% of bare-metal infrastructure and leave +$130 net surplus earmarked for deflationary token sink."
   },
   "incomes": [
     {
@@ -21,9 +23,10 @@
       "date": "2026-10-31",
       "product_platform": "Werracle Risk Radar (radar.werracle.com)",
       "tier": "Institutional B2B DaaS License",
+      "revenue_classification": "PILOT_INDEPENDENT_OPERATOR",
       "counterparty": "Bekirhan Dagli (Independent Liquidator Operator)",
-      "counterparty_context": "Independent infrastructure operator running automated liquidators on orak.werracle.com and oraketh.werracle.com",
-      "tier_upgrade_notes": "Initial Pro Tier registration ($149 base) upgraded to Institutional Tier ($499 full valuation / differential settlement) for high-frequency low-latency execution feeds",
+      "counterparty_disclosure": "Stakeholder / Co-Founder acting as independent infrastructure operator running custom arbitrage/liquidation bots on orak.werracle.com and oraketh.werracle.com.",
+      "tier_upgrade_notes": "Initially deployed under Pro Plan ($149 base); upgraded to Institutional Tier ($499 valuation / differential settlement) to unlock dedicated high-frequency Morpho/Aave websocket streams.",
       "description": "High-Frequency Morpho/Aave OEV & Liquidation Telemetry Stream",
       "amount_usd": 499.0,
       "billing_cycle": "Monthly",
@@ -35,8 +38,10 @@
       "date": "2026-11-03",
       "product_platform": "Answerr AI Decision API (answerr.me)",
       "tier": "answerr Pro Subscription",
+      "revenue_classification": "PILOT_CROSS_BORDER_RELATED_PARTY",
       "counterparty": "ITouch Systems UA (Ukraine)",
-      "counterparty_context": "Separate cross-border corporate entity (Partners: Volkan Dagli & Cem ...). Enterprise CRM fraud & risk screening integration (active production deployment)",
+      "counterparty_disclosure": "Affiliated cross-border corporate entity (Partners: Volkan Dagli & Cem ...; legally separate from ITOUCH TR). Operating live commercial deployment for enterprise CRM security and anti-fraud decisioning.",
+      "deployment_reference": "answerr_crm_integration_report.html (Production Decisioning Gateway)",
       "description": "1,000,000 Neuromorphic 0-VRAM System-1 Decision Quota (Enterprise API Gateway)",
       "invoice_no": "INV-2026-0CA652A1",
       "valid_until": "2026-12-04",

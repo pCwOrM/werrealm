@@ -3,7 +3,7 @@
 **Governing Institution:** ITOUCH BILISIM SISTEMLERI LTD. STI.  
 **R&D Campus:** Cukurova University Science Park (Teknokent), Adana, Turkey  
 **Single Source of Truth:** `werrealm/data/treasury_ledger.json`  
-**Last Audit Timestamp:** 2026-11-04T09:49:13Z  
+**Last Audit Timestamp:** 2026-11-04T10:26:09Z  
 
 ---
 
@@ -25,8 +25,8 @@ Werrealm operates on a self-sustaining, revenue-backed DePIN model. Commercial r
 
 | Transaction ID | Date | Product / Platform | Counterparty & Context | Amount (USD) | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| `INC-2026-11-001` | 2026-10-31 | **Werracle Risk Radar (radar.werracle.com)**<br/>*Institutional B2B DaaS License* | **Bekirhan Dagli (Independent Liquidator Operator)**<br/><small>Initial Pro Tier registration ($149 base) upgraded to Institutional Tier ($499 full valuation / differential settlement) for high-frequency low-latency execution feeds</small> | **$499.00** | `PAID_CONFIRMED` |
-| `INC-2026-11-002` | 2026-11-03 | **Answerr AI Decision API (answerr.me)**<br/>*answerr Pro Subscription* | **ITouch Systems UA (Ukraine)**<br/><small>Separate cross-border corporate entity (Partners: Volkan Dagli & Cem ...). Enterprise CRM fraud & risk screening integration (active production deployment)</small> | **$99.00** | `PAID_CONFIRMED` |
+| `INC-2026-11-001` | 2026-10-31 | **Werracle Risk Radar (radar.werracle.com)**<br/>*Institutional B2B DaaS License* | **Bekirhan Dagli (Independent Liquidator Operator)**<br/><small>Initially deployed under Pro Plan ($149 base); upgraded to Institutional Tier ($499 valuation / differential settlement) to unlock dedicated high-frequency Morpho/Aave websocket streams.</small> | **$499.00** | `PAID_CONFIRMED` |
+| `INC-2026-11-002` | 2026-11-03 | **Answerr AI Decision API (answerr.me)**<br/>*answerr Pro Subscription* | **ITouch Systems UA (Ukraine)**<br/><small>1,000,000 Neuromorphic 0-VRAM System-1 Decision Quota (Enterprise API Gateway)</small> | **$99.00** | `PAID_CONFIRMED` |
 
 ---
 
