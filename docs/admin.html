@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex, nofollow" />
-  <title>Werrealm Sovereign Command Console — Treasury, Burn & DEX Liquidity</title>
+  <title>Werrealm Sovereign Command Console — Restricted Web3 Gate</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <style>
     :root {
@@ -26,9 +26,56 @@
       color: var(--text);
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       min-height: 100vh;
+    }
+    /* Full-Screen Cryptographic Login Gate */
+    #loginGate {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .gate-card {
+      background: rgba(12, 18, 32, 0.95);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 38px 32px;
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.75);
+    }
+    .gate-card img { width: 64px; height: 64px; margin-bottom: 14px; }
+    .gate-card h1 { font-size: 1.3rem; margin: 0 0 8px; letter-spacing: 0.4px; }
+    .gate-card p { font-size: 0.85rem; color: var(--muted); line-height: 1.55; margin: 0 0 22px; }
+    .gate-allowlist {
+      text-align: left;
+      background: #060911;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: #cbd5e1;
+      margin-bottom: 22px;
+      line-height: 1.6;
+    }
+    .gate-err {
+      margin-top: 14px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid var(--danger);
+      color: #fca5a5;
+      font-size: 0.8rem;
+      display: none;
+    }
+    /* Console App (Hidden until cryptographic signature succeeds) */
+    #consoleApp {
+      display: none;
       padding: 24px 16px 60px;
     }
-    .container { max-width: 1180px; margin: 0 auto; }
+    .container { max-width: 1200px; margin: 0 auto; }
     header {
       display: flex; align-items: center; justify-content: space-between;
       flex-wrap: wrap; gap: 16px; padding-bottom: 20px;
@@ -41,10 +88,9 @@
     .auth-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
     .badge {
       padding: 6px 12px; border-radius: 999px; font-size: 0.78rem;
-      font-family: var(--mono); border: 1px solid var(--border); background: #090d16;
+      font-family: var(--mono); border: 1px solid rgba(16, 185, 129, 0.5);
+      color: var(--emerald); background: #090d16;
     }
-    .badge.ok { border-color: rgba(16, 185, 129, 0.5); color: var(--emerald); }
-    .badge.warn { border-color: rgba(245, 158, 11, 0.5); color: var(--amber); }
     button {
       cursor: pointer; border: none; border-radius: 8px;
       padding: 10px 16px; font-weight: 600; font-size: 0.86rem;
@@ -70,7 +116,7 @@
     .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 20px; margin-bottom: 24px; }
     .panel {
       background: var(--card); border: 1px solid var(--border);
-      border-radius: 14px; padding: 20px;
+      border-radius: 14px; padding: 20px; margin-bottom: 20px;
     }
     .panel h2 {
       margin: 0 0 6px; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;
@@ -86,7 +132,7 @@
     .field input.mono { font-family: var(--mono); font-size: 0.82rem; }
     .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     table { width: 100%; border-collapse: collapse; font-size: 0.82rem; margin-top: 10px; }
-    th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    th, td { text-align: left; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.06); vertical-align: top; }
     th { color: var(--muted); font-size: 0.74rem; text-transform: uppercase; }
     .mono { font-family: var(--mono); }
     .status-log {
@@ -95,226 +141,272 @@
       font-family: var(--mono); font-size: 0.78rem; color: #cbd5e1;
       display: none; word-break: break-all;
     }
+    a.tx-link { color: var(--primary); text-decoration: none; font-family: var(--mono); font-size: 0.78rem; }
+    a.tx-link:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <div class="brand">
-        <img src="/werr-token-logo-256.png" alt="WERR" />
-        <div>
-          <h1>WERREALM SOVEREIGN COMMAND CONSOLE</h1>
-          <span>SIWE Cryptographic Admin · On-Chain Reflex Burn · Financial Ledger · Aerodrome DEX</span>
-        </div>
-      </div>
-      <div class="auth-bar">
-        <span id="authStatusBadge" class="badge warn">🔒 Cüzdan İmzası Bekleniyor</span>
-        <button class="btn-primary" id="btnConnectSign" onclick="authenticateWithWallet()">
-          🦊 Rabby / MetaMask ile İmzalayarak Giriş Yap
-        </button>
-        <a href="/" class="btn-outline" style="text-decoration:none;padding:9px 14px;border-radius:8px;font-size:0.82rem;">← Ana Sayfa</a>
-      </div>
-    </header>
 
-    <!-- Live KPI Strip -->
-    <div class="kpi-grid">
-      <div class="kpi">
-        <div class="lbl">Dönem Brüt Gelir (Inflow)</div>
-        <div class="val" id="kpiRev" style="color:var(--emerald)">$598.00</div>
-        <div class="sub">Radar DaaS ($499) + Answerr API ($99)</div>
+  <!-- 1. FULL-SCREEN CRYPTOGRAPHIC LOGIN GATE -->
+  <div id="loginGate">
+    <div class="gate-card">
+      <img src="/werr-token-logo-256.png" alt="Werrium" />
+      <h1>🔒 WERREALM SOVEREIGN GATE</h1>
+      <p>
+        Bu yönetim konsolu <b>EIP-191 Kriptografik Cüzdan İmzası (SIWE)</b> ile korunmaktadır. Devam etmek için yetkili Kurucu / Safe imzacı cüzdanınızla giriş imzası verin.
+      </p>
+      <div class="gate-allowlist">
+        <div style="color:var(--emerald);font-weight:700;margin-bottom:4px;">✓ Yetkili Yönetici Cüzdanları (Allowlist):</div>
+        • Founder EOA: <code>0x803a43...21FC19</code><br/>
+        • Binance Web3: <code>0xA08937...5C0024</code><br/>
+        • Worker Node: <code>0x203442...59c0c2</code>
       </div>
-      <div class="kpi">
-        <div class="lbl">Dönem Operasyon Gideri (OpEx)</div>
-        <div class="val" id="kpiExp" style="color:#f87171">-$498.00</div>
-        <div class="sub">Sunucular ($450) + Domain ($30) + GitHub ($18)</div>
+      <button class="btn-primary" style="width:100%;justify-content:center;padding:13px 20px;font-size:0.95rem;" onclick="authenticateWithWallet()">
+        🦊 Rabby / MetaMask ile İmzalayarak Kilidi Aç
+      </button>
+      <div style="margin-top:14px;">
+        <a href="/" style="color:var(--muted);font-size:0.8rem;text-decoration:none;">← werrealm.network Ana Sayfasına Dön</a>
       </div>
-      <div class="kpi">
-        <div class="lbl">Net Kasa Fazlası (Surplus)</div>
-        <div class="val" id="kpiSurplus" style="color:var(--primary)">+$100.00</div>
-        <div class="sub" id="kpiMargin">Net Marj: +16.72% (100,000 WERR Kota)</div>
-      </div>
-      <div class="kpi">
-        <div class="lbl">Zincir Üstü Yakılan ($WERR)</div>
-        <div class="val" id="kpiBurned" style="color:var(--amber)">99,000 WERR</div>
-        <div class="sub" id="kpiRemaining">Kalan Dönem Kotası: 1,000 WERR ($1.00)</div>
-      </div>
+      <div id="gateError" class="gate-err"></div>
     </div>
+  </div>
 
-    <div class="grid-2">
-      <!-- 1. On-Chain burnForReflex Console -->
-      <div class="panel">
-        <h2>🔥 1. Zincir Üstü $WERR Yakım Merkezi (`burnForReflex`)</h2>
-        <p class="desc">
-          Kontrattaki <code>burnForReflex(uint256 value, bytes32 queryHash)</code> fonksiyonunu doğrudan Rabby/MetaMask cüzdanınızla çağırır. Zincirdeki <code>totalSupply()</code> rakamını kalıcı olarak düşürür ve işlemi otomatik deftere kaydeder.
-        </p>
-        <div class="row-2">
-          <div class="field">
-            <label>Yakılacak Miktar ($WERR)</label>
-            <input type="number" id="burnAmount" value="1000" step="100" min="1" oninput="updateBurnPreview()" />
-          </div>
-          <div class="field">
-            <label>Fatura / Referans Kodu (`invoice_no`)</label>
-            <input type="text" id="burnInvoice" value="INV-2026-SURPLUS-11" oninput="updateBurnPreview()" />
+  <!-- 2. PROTECTED COMMAND CONSOLE (Hidden until verified) -->
+  <div id="consoleApp">
+    <div class="container">
+      <header>
+        <div class="brand">
+          <img src="/werr-token-logo-256.png" alt="WERR" />
+          <div>
+            <h1>WERREALM SOVEREIGN COMMAND CONSOLE</h1>
+            <span>SIWE Cryptographic Admin · On-Chain Reflex Burn · Financial Ledger · Aerodrome DEX</span>
           </div>
         </div>
-        <div class="field">
-          <label>Platform / Açıklama</label>
-          <select id="burnPlatform">
-            <option value="Answerr AI Decision API (answerr.me)">Answerr AI Decision API (answerr.me)</option>
-            <option value="Werracle Risk Radar (radar.werracle.com)">Werracle Risk Radar (radar.werracle.com)</option>
-            <option value="Monthly Net Surplus Buyback & Burn">Monthly Net Surplus Buyback & Burn</option>
-          </select>
+        <div class="auth-bar">
+          <span id="authStatusBadge" class="badge">✓ Yetkili Cüzdan</span>
+          <button class="btn-outline" onclick="lockConsole()">🚪 Kilitle / Çıkış</button>
+          <a href="/" class="btn-outline" style="text-decoration:none;padding:9px 14px;border-radius:8px;font-size:0.82rem;">← Ana Sayfa</a>
         </div>
-        <div class="field">
-          <label>Otomatik Hesaplanan EVM `queryHash` (`keccak256`)</label>
-          <input type="text" id="burnQueryHash" class="mono" readonly value="0x..." />
+      </header>
+
+      <!-- Live KPI Strip -->
+      <div class="kpi-grid">
+        <div class="kpi">
+          <div class="lbl">Dönem Brüt Gelir (Inflow)</div>
+          <div class="val" id="kpiRev" style="color:var(--emerald)">$598.00</div>
+          <div class="sub">Radar DaaS ($499) + Answerr API ($99)</div>
         </div>
-        <button class="btn-danger" style="width:100%;justify-content:center;" onclick="executeOnChainReflexBurn()">
-          🔥 Base Mainnet Üzerinde Yak (`burnForReflex`) & Deftere İşle
-        </button>
-        <div id="burnLog" class="status-log"></div>
+        <div class="kpi">
+          <div class="lbl">Dönem Operasyon Gideri (OpEx)</div>
+          <div class="val" id="kpiExp" style="color:#f87171">-$498.00</div>
+          <div class="sub">Sunucular ($450) + Domain ($30) + GitHub ($18)</div>
+        </div>
+        <div class="kpi">
+          <div class="lbl">Net Kasa Fazlası (Surplus)</div>
+          <div class="val" id="kpiSurplus" style="color:var(--primary)">+$100.00</div>
+          <div class="sub" id="kpiMargin">Net Marj: +16.72% (100,000 WERR Kota)</div>
+        </div>
+        <div class="kpi">
+          <div class="lbl">Zincir Üstü Yakılan ($WERR)</div>
+          <div class="val" id="kpiBurned" style="color:var(--amber)">99,000 WERR</div>
+          <div class="sub" id="kpiRemaining">Kalan Dönem Kotası: 1,000 WERR ($1.00)</div>
+        </div>
       </div>
 
-      <!-- 2. Aerodrome DEX Liquidity Launcher -->
-      <div class="panel">
-        <h2>💧 2. Aerodrome DEX Likidite Başlatıcı (`vAMM-WERR/USDC`)</h2>
-        <p class="desc">
-          Deterministik Havuz: <code>0xdA15b610f7De7A494CD1F7f80B6B73E8b34108A5</code>. Başlangıç kuru <b>$0.0010 / WERR</b> (<code>$1 USDC = 1,000 WERR</code>). Önce $100 ile açıp istediğiniz zaman +$900 ekleyebilirsiniz.
-        </p>
-        <div class="row-2">
-          <div class="field">
-            <label>Yatırılacak USDC Miktarı (Base)</label>
-            <input type="number" id="lpUsdc" value="100" step="50" min="10" oninput="syncLpRatio()" />
+      <div class="grid-2">
+        <!-- 1. On-Chain burnForReflex Console -->
+        <div class="panel" style="margin-bottom:0;">
+          <h2>🔥 1. Zincir Üstü $WERR Yakım Merkezi (`burnForReflex`)</h2>
+          <p class="desc">
+            Kontrattaki <code>burnForReflex(uint256 value, bytes32 queryHash)</code> fonksiyonunu doğrudan Rabby/MetaMask cüzdanınızla çağırır. Zincirdeki <code>totalSupply()</code> rakamını kalıcı olarak düşürür ve işlemi otomatik deftere kaydeder.
+          </p>
+          <div class="row-2">
+            <div class="field">
+              <label>Yakılacak Miktar ($WERR)</label>
+              <input type="number" id="burnAmount" value="1000" step="100" min="1" oninput="updateBurnPreview()" />
+            </div>
+            <div class="field">
+              <label>Fatura / Referans Kodu (`invoice_no`)</label>
+              <input type="text" id="burnInvoice" value="INV-2026-SURPLUS-11" oninput="updateBurnPreview()" />
+            </div>
           </div>
           <div class="field">
-            <label>Eşleşecek $WERR Miktarı (`1 USD = 1,000 WERR`)</label>
-            <input type="number" id="lpWerr" value="100000" step="50000" oninput="syncLpRatio(true)" />
-          </div>
-        </div>
-        <div class="field">
-          <label>LP Token Kilit Hedefi (`to`)</label>
-          <select id="lpRecipient">
-            <option value="0x839A6d7E726D60EA2B587e793aE36342297e8C63">WerrTreasuryTimelock (0x839A...8C63 — Kontratta Kilitli)</option>
-            <option value="0x7CC5fd367e210F4678Bcfca054cbe0F87291E355">Sovereign Treasury Safe 2/3 (0x7CC5...E355)</option>
-            <option value="0x000000000000000000000000000000000000dEaD">Kalıcı LP Yakımı (0x...dEaD — %100 Burned Rozeti)</option>
-            <option value="0x803a439fa8F7cf078302b51111Ae003b5221FC19">Kurucu Cüzdanı (0x803a...FC19)</option>
-          </select>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1.3fr;gap:8px;">
-          <button class="btn-outline" onclick="approveTokenForDex('WERR')">1. WERR Onayla</button>
-          <button class="btn-outline" onclick="approveTokenForDex('USDC')">2. USDC Onayla</button>
-          <button class="btn-emerald" onclick="addAerodromeLiquidity()">3. Havuza Ekle</button>
-        </div>
-        <div id="lpLog" class="status-log"></div>
-      </div>
-    </div>
-
-    <!-- 3. Income & Expense Entry Forms -->
-    <div class="grid-2">
-      <div class="panel">
-        <h2>📈 3. Yeni Gelir (Inflow) Kaydı Ekle</h2>
-        <p class="desc">Radar (`radar.werracle.com`) veya Answerr (`answerr.me`) satışlarını resmî hazine defterine ekler.</p>
-        <div class="row-2">
-          <div class="field">
-            <label>Platform / Ürün</label>
-            <select id="incPlatform">
-              <option value="Werracle Risk Radar (radar.werracle.com)">Werracle Risk Radar (radar.werracle.com)</option>
+            <label>Platform / Açıklama</label>
+            <select id="burnPlatform">
               <option value="Answerr AI Decision API (answerr.me)">Answerr AI Decision API (answerr.me)</option>
+              <option value="Werracle Risk Radar (radar.werracle.com)">Werracle Risk Radar (radar.werracle.com)</option>
+              <option value="Monthly Net Surplus Buyback & Burn">Monthly Net Surplus Buyback & Burn</option>
             </select>
           </div>
           <div class="field">
-            <label>Paket / Tier</label>
-            <input type="text" id="incTier" placeholder="Örn: Pro Plan / Institutional" value="Pro Subscription" />
+            <label>Otomatik Hesaplanan EVM `queryHash` (`keccak256`)</label>
+            <input type="text" id="burnQueryHash" class="mono" readonly value="0x..." />
           </div>
+          <button class="btn-danger" style="width:100%;justify-content:center;" onclick="executeOnChainReflexBurn()">
+            🔥 Base Mainnet Üzerinde Yak (`burnForReflex`) & Deftere İşle
+          </button>
+          <div id="burnLog" class="status-log"></div>
         </div>
-        <div class="row-2">
-          <div class="field">
-            <label>Müşteri / Kurum (`counterparty`)</label>
-            <input type="text" id="incCounterparty" placeholder="Örn: Acme Quant Fund" />
+
+        <!-- 2. Aerodrome DEX Liquidity Launcher -->
+        <div class="panel" style="margin-bottom:0;">
+          <h2>💧 2. Aerodrome DEX Likidite Başlatıcı (`vAMM-WERR/USDC`)</h2>
+          <p class="desc">
+            Deterministik Havuz: <code>0xdA15b610f7De7A494CD1F7f80B6B73E8b34108A5</code>. Başlangıç kuru <b>$0.0010 / WERR</b> (<code>$1 USDC = 1,000 WERR</code>). Önce $100 ile açıp istediğiniz zaman +$900 ekleyebilirsiniz.
+          </p>
+          <div class="row-2">
+            <div class="field">
+              <label>Yatırılacak USDC Miktarı (Base)</label>
+              <input type="number" id="lpUsdc" value="100" step="50" min="10" oninput="syncLpRatio()" />
+            </div>
+            <div class="field">
+              <label>Eşleşecek $WERR Miktarı (`1 USD = 1,000 WERR`)</label>
+              <input type="number" id="lpWerr" value="100000" step="50000" oninput="syncLpRatio(true)" />
+            </div>
           </div>
           <div class="field">
-            <label>Tutar (USD)</label>
-            <input type="number" id="incAmount" step="0.01" placeholder="99.00" />
+            <label>LP Token Kilit Hedefi (`to`)</label>
+            <select id="lpRecipient">
+              <option value="0x839A6d7E726D60EA2B587e793aE36342297e8C63">WerrTreasuryTimelock (0x839A...8C63 — Kontratta Kilitli)</option>
+              <option value="0x7CC5fd367e210F4678Bcfca054cbe0F87291E355">Sovereign Treasury Safe 2/3 (0x7CC5...E355)</option>
+              <option value="0x000000000000000000000000000000000000dEaD">Kalıcı LP Yakımı (0x...dEaD — %100 Burned Rozeti)</option>
+              <option value="0x803a439fa8F7cf078302b51111Ae003b5221FC19">Kurucu Cüzdanı (0x803a...FC19)</option>
+            </select>
           </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1.3fr;gap:8px;">
+            <button class="btn-outline" onclick="approveTokenForDex('WERR')">1. WERR Onayla</button>
+            <button class="btn-outline" onclick="approveTokenForDex('USDC')">2. USDC Onayla</button>
+            <button class="btn-emerald" onclick="addAerodromeLiquidity()">3. Havuza Ekle</button>
+          </div>
+          <div id="lpLog" class="status-log"></div>
         </div>
-        <div class="row-2">
-          <div class="field">
-            <label>Fatura No (`invoice_no`)</label>
-            <input type="text" id="incInvoice" placeholder="INV-2026-..." />
-          </div>
-          <div class="field">
-            <label>Tarih</label>
-            <input type="date" id="incDate" />
-          </div>
-        </div>
-        <button class="btn-emerald" style="width:100%;justify-content:center;" onclick="submitLedgerEntry('income')">
-          ＋ Geliri Hazine Defterine Kaydet (İmzalı)
-        </button>
-        <div id="incLog" class="status-log"></div>
       </div>
 
+      <!-- 3. Income & Expense Entry Forms -->
+      <div class="grid-2">
+        <div class="panel" style="margin-bottom:0;">
+          <h2>📈 3. Yeni Gelir (Inflow) Kaydı Ekle</h2>
+          <p class="desc">Radar (`radar.werracle.com`) veya Answerr (`answerr.me`) satışlarını resmî hazine defterine ekler.</p>
+          <div class="row-2">
+            <div class="field">
+              <label>Platform / Ürün</label>
+              <select id="incPlatform">
+                <option value="Werracle Risk Radar (radar.werracle.com)">Werracle Risk Radar (radar.werracle.com)</option>
+                <option value="Answerr AI Decision API (answerr.me)">Answerr AI Decision API (answerr.me)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Paket / Tier</label>
+              <input type="text" id="incTier" placeholder="Örn: Pro Plan / Institutional" value="Pro Subscription" />
+            </div>
+          </div>
+          <div class="row-2">
+            <div class="field">
+              <label>Müşteri / Kurum (`counterparty`)</label>
+              <input type="text" id="incCounterparty" placeholder="Örn: Acme Quant Fund" />
+            </div>
+            <div class="field">
+              <label>Tutar (USD)</label>
+              <input type="number" id="incAmount" step="0.01" placeholder="99.00" />
+            </div>
+          </div>
+          <div class="row-2">
+            <div class="field">
+              <label>Fatura No (`invoice_no`)</label>
+              <input type="text" id="incInvoice" placeholder="INV-2026-..." />
+            </div>
+            <div class="field">
+              <label>Tarih</label>
+              <input type="date" id="incDate" />
+            </div>
+          </div>
+          <button class="btn-emerald" style="width:100%;justify-content:center;" onclick="submitLedgerEntry('income')">
+            ＋ Geliri Hazine Defterine Kaydet
+          </button>
+          <div id="incLog" class="status-log"></div>
+        </div>
+
+        <div class="panel" style="margin-bottom:0;">
+          <h2>📉 4. Yeni Gider (OpEx) Kaydı Ekle</h2>
+          <p class="desc">Sunucu, domain, lisans veya denetim giderlerini aylık bilançoya işler.</p>
+          <div class="row-2">
+            <div class="field">
+              <label>Gider Kategorisi</label>
+              <select id="expCategory">
+                <option value="Domain & DNS Infrastructure">Domain & DNS Infrastructure</option>
+                <option value="Bare-Metal Infrastructure">Bare-Metal Infrastructure</option>
+                <option value="Validator Sentry Node">Validator Sentry Node</option>
+                <option value="Developer Tooling & CI/CD">Developer Tooling & CI/CD</option>
+                <option value="Security & Smart Contract Ops">Security & Smart Contract Ops</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Tutar (USD)</label>
+              <input type="number" id="expAmount" step="0.01" placeholder="30.00" />
+            </div>
+          </div>
+          <div class="field">
+            <label>Gider Kalemi / Açıklama (`item`)</label>
+            <input type="text" id="expItem" placeholder="Örn: werrealm.network Domain Registration (1 Year)" />
+          </div>
+          <div class="row-2">
+            <div class="field">
+              <label>Durum</label>
+              <select id="expStatus">
+                <option value="PAID">PAID (Ödendi)</option>
+                <option value="ACCRUED">ACCRUED (Tahakkuk)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Vade / Ödeme Tarihi</label>
+              <input type="date" id="expDate" />
+            </div>
+          </div>
+          <button class="btn-primary" style="width:100%;justify-content:center;" onclick="submitLedgerEntry('expense')">
+            ＋ Gideri Hazine Defterine Kaydet
+          </button>
+          <div id="expLog" class="status-log"></div>
+        </div>
+      </div>
+
+      <!-- 4. Live Financial Ledger Tables -->
       <div class="panel">
-        <h2>📉 4. Yeni Gider (OpEx) Kaydı Ekle</h2>
-        <p class="desc">Sunucu, domain, lisans veya denetim giderlerini aylık bilançoya işler.</p>
-        <div class="row-2">
-          <div class="field">
-            <label>Gider Kategorisi</label>
-            <select id="expCategory">
-              <option value="Domain & DNS Infrastructure">Domain & DNS Infrastructure</option>
-              <option value="Bare-Metal Infrastructure">Bare-Metal Infrastructure</option>
-              <option value="Validator Sentry Node">Validator Sentry Node</option>
-              <option value="Developer Tooling & CI/CD">Developer Tooling & CI/CD</option>
-              <option value="Security & Smart Contract Ops">Security & Smart Contract Ops</option>
-            </select>
+        <h2>📊 5. Canlı Hazine Defteri (`treasury_ledger.json` — Şimdiye Kadarki Gelir & Giderler)</h2>
+        <p class="desc">Sunucudaki canlı gelir (Inflow) ve gider (OpEx) kayıtları.</p>
+        <div class="grid-2" style="margin-bottom:0;">
+          <div>
+            <h3 style="font-size:0.9rem;color:var(--emerald);margin:4px 0;">Gelirler (Incomes — $598.00)</h3>
+            <table id="tblIncomes">
+              <thead><tr><th>ID</th><th>Tarih</th><th>Ürün & Müşteri</th><th>Tutar</th></tr></thead>
+              <tbody></tbody>
+            </table>
           </div>
-          <div class="field">
-            <label>Tutar (USD)</label>
-            <input type="number" id="expAmount" step="0.01" placeholder="30.00" />
-          </div>
-        </div>
-        <div class="field">
-          <label>Gider Kalemi / Açıklama (`item`)</label>
-          <input type="text" id="expItem" placeholder="Örn: werrealm.network Domain Registration (1 Year)" />
-        </div>
-        <div class="row-2">
-          <div class="field">
-            <label>Durum</label>
-            <select id="expStatus">
-              <option value="PAID">PAID (Ödendi)</option>
-              <option value="ACCRUED">ACCRUED (Tahakkuk)</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>Vade / Ödeme Tarihi</label>
-            <input type="date" id="expDate" />
+          <div>
+            <h3 style="font-size:0.9rem;color:#f87171;margin:4px 0;">Giderler (OpEx — -$498.00)</h3>
+            <table id="tblExpenses">
+              <thead><tr><th>ID</th><th>Kategori</th><th>Kalem & Durum</th><th>Tutar</th></tr></thead>
+              <tbody></tbody>
+            </table>
           </div>
         </div>
-        <button class="btn-primary" style="width:100%;justify-content:center;" onclick="submitLedgerEntry('expense')">
-          ＋ Gideri Hazine Defterine Kaydet (İmzalı)
-        </button>
-        <div id="expLog" class="status-log"></div>
       </div>
-    </div>
 
-    <!-- 4. Live Ledger Tables -->
-    <div class="panel">
-      <h2>📊 5. Canlı Hazine Defteri (`treasury_ledger.json` — Tek Hakikat Kaynağı)</h2>
-      <p class="desc">Sunucudaki canlı gelir, gider ve zincir üstü yakım kayıtları.</p>
-      <div class="grid-2" style="margin-bottom:0;">
-        <div>
-          <h3 style="font-size:0.9rem;color:var(--emerald);margin:4px 0;">Gelirler (Incomes)</h3>
-          <table id="tblIncomes">
-            <thead><tr><th>ID</th><th>Tarih</th><th>Ürün & Müşteri</th><th>Tutar</th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
-        <div>
-          <h3 style="font-size:0.9rem;color:#f87171;margin:4px 0;">Giderler (OpEx)</h3>
-          <table id="tblExpenses">
-            <thead><tr><th>ID</th><th>Kategori</th><th>Kalem</th><th>Tutar</th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
+      <!-- 5. Complete On-Chain Transaction & Burn History -->
+      <div class="panel">
+        <h2>🔗 6. Şimdiye Kadarki Zincir Üstü Yakım, Vesting & Hazine İşlemleri (Base Mainnet)</h2>
+        <p class="desc">Base Mainnet (Chain ID: 8453) üzerinde gerçekleşen tüm resmi kontrat, yakım, çoklu-imza ve vesting kilit işlemleri.</p>
+        <table id="tblOnChain">
+          <thead>
+            <tr>
+              <th>İşlem ID / Tür</th>
+              <th>Tarih & Blok</th>
+              <th>İşlem Açıklaması & Fatura/Kontrat</th>
+              <th>Miktar ($WERR)</th>
+              <th>BaseScan Kanıtı</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -325,9 +417,150 @@
     const USDC_ADDR = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
     const AERO_ROUTER = '0xcF77a3Ba9A5CA399B7c97c74d54e5b1Beb874E43';
 
+    const ALLOWED_ADMINS = new Set([
+      '0x803a439fa8f7cf078302b51111ae003b5221fc19',
+      '0xa089377506edaee71d90cdfc5ddc84e24d5c0024',
+      '0x2034422f8ba7a38981a0d4e7dc3ed80fe859c0c2'
+    ]);
+
+    // Embedded baseline ledger so tables are always populated immediately (0ms) and updated from live API
+    const FALLBACK_LEDGER = {
+      summary: {
+        total_gross_revenue_usd: 598.0,
+        total_operating_expenses_usd: 498.0,
+        net_operational_surplus_usd: 100.0,
+        operating_margin_percentage: 16.72,
+        allocated_burn_reserve_usd: 100.0,
+        total_werr_burned_to_date: 99000.0
+      },
+      incomes: [
+        {
+          id: 'INC-2026-11-001',
+          date: '2026-10-31',
+          product_platform: 'Werracle Risk Radar (radar.werracle.com)',
+          tier: 'Institutional B2B DaaS License',
+          counterparty: 'Bekirhan Dagli (Independent Liquidator Operator)',
+          amount_usd: 499.0,
+          payment_status: 'PAID_CONFIRMED'
+        },
+        {
+          id: 'INC-2026-11-002',
+          date: '2026-11-03',
+          product_platform: 'Answerr AI Decision API (answerr.me)',
+          tier: 'answerr Pro Subscription (INV-2026-0CA652A1)',
+          counterparty: 'ITouch Systems UA (Ukraine)',
+          amount_usd: 99.0,
+          payment_status: 'PAID_CONFIRMED'
+        }
+      ],
+      expenses: [
+        {
+          id: 'EXP-2026-11-001',
+          category: 'Bare-Metal Infrastructure',
+          item: 'pcworm-root Genesis Core Server (Dual Xeon E5, 256 GB RAM)',
+          amount_usd: 250.0,
+          due_date: '2026-11-30',
+          status: 'ACCRUED'
+        },
+        {
+          id: 'EXP-2026-11-002',
+          category: 'Validator Sentry Node',
+          item: 'mechsrv Defense & Sentry Validator (24 GB RAM, High-IOPS SSD)',
+          amount_usd: 200.0,
+          due_date: '2026-11-30',
+          status: 'ACCRUED'
+        },
+        {
+          id: 'EXP-2026-11-003',
+          category: 'Developer Tooling & CI/CD',
+          item: 'GitHub Pro Team Plan (4 Seats @ $4.50/seat)',
+          amount_usd: 18.0,
+          due_date: '2026-11-30',
+          status: 'ACCRUED'
+        },
+        {
+          id: 'EXP-2026-11-004',
+          category: 'Domain & DNS Infrastructure',
+          item: 'werrealm.network Sovereign Domain Registration & DNS (1 Year)',
+          amount_usd: 30.0,
+          due_date: '2026-11-04',
+          status: 'PAID'
+        }
+      ],
+      token_burn_strategy: {
+        current_surplus_usd: 100.0,
+        target_burn_werr_nominal: 100000.0,
+        burn_events: [
+          {
+            event_id: 'BURN-2026-11-001',
+            type: 'COMMERCIAL_REVENUE_PROOF_OF_BURN',
+            timestamp_utc: '2026-11-03T22:00:31Z',
+            block_number: 53476942,
+            tx_hash: '0xfa96b3d04a2d6e8066abd92345b16c5e5d63bc4539a18cee78f699f265117e68',
+            explorer_url: 'https://basescan.org/tx/0xfa96b3d04a2d6e8066abd92345b16c5e5d63bc4539a18cee78f699f265117e68',
+            product_platform: 'answerr AI Decision API (answerr.me)',
+            invoice_no: 'INV-2026-0CA652A1 ($99.00)',
+            werr_burned: 99000.0
+          }
+        ]
+      }
+    };
+
+    const STATIC_ONCHAIN_MILESTONES = [
+      {
+        id: 'LOCK-2026-11-002',
+        badge: '🔒 TIMELOCK VESTING',
+        badgeColor: '#38bdf8',
+        date: '2026-11-04 · Blok 53,508,179',
+        desc: '<b>WerrTreasuryTimelock Kontratına Token Kilitleme</b><br/><small style="color:#94a3b8">Kontrat: 0x839A6d7E726D60EA2B587e793aE36342297e8C63 (90g Cliff + 24ay Vesting)</small>',
+        amount: '40,000,000 WERR (%4.00)',
+        amountColor: '#38bdf8',
+        tx: '0xdae1e4bad42417dacef0cd39b3b406d8480eb42f3330791c19e64feed7abccf0'
+      },
+      {
+        id: 'SAFE-2026-11-001',
+        badge: '🛡️ SAFE 2/3 MULTISIG',
+        badgeColor: '#10b981',
+        date: '2026-11-04 · Blok 53,507,173',
+        desc: '<b>Sovereign Hazine Kasası 2/3 Çoklu-İmza Yükseltmesi</b><br/><small style="color:#94a3b8">Kasa: 0x7CC5fd367e210F4678Bcfca054cbe0F87291E355 (3 İmzacı, Eşik: 2/3)</small>',
+        amount: '949,501,000 WERR (%94.95)',
+        amountColor: '#10b981',
+        tx: '0x72197374911008a5d6122543f5f3b1eee5062817e96f1d5eb829d1961e4cb4fe'
+      },
+      {
+        id: 'DEPLOY-2026-11-001',
+        badge: '📜 CONTRACT DEPLOY',
+        badgeColor: '#a855f7',
+        date: '2026-11-04 · Blok 53,506,209',
+        desc: '<b>WerrTreasuryTimelock.sol Base Mainnet Kurulumu</b><br/><small style="color:#94a3b8">Doğrulanmış (Verified) Sabit Hak Ediş Kontratı</small>',
+        amount: 'Kontrat Kurulumu',
+        amountColor: '#cbd5e1',
+        tx: '0x0a6bb12d9fe5c1ff7b6a3728d3f5dac40f0790df993025936ee7a4b272e467b7'
+      },
+      {
+        id: 'ALPHA-2026-10-31',
+        badge: '⚡ ALPHA STAKE',
+        badgeColor: '#10b981',
+        date: '2026-10-31 · Base Mainnet',
+        desc: '<b>Bekirhan Dağlı (Alpha Liquidator Stakeholder Tahsisi)</b><br/><small style="color:#94a3b8">Cüzdan: 0xB89AecB2A19CFCc13EE060154A1eAbc42C94485f (Alpha Tier Staker)</small>',
+        amount: '500,000 WERR (%0.05)',
+        amountColor: '#10b981',
+        tx: '0x49242804ec9ed65b123f869252f550c07fbe10e2ce2e921b80566531bd62a68d'
+      },
+      {
+        id: 'GENESIS-2026-10-28',
+        badge: '🔵 GENESIS MINT',
+        badgeColor: '#38bdf8',
+        date: '2026-10-28 · Base Mainnet',
+        desc: '<b>WerriumToken.sol ($WERR) Base Mainnet Genesis Kurulumu</b><br/><small style="color:#94a3b8">Kontrat: 0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2 (Mint Fonksiyonu Yok, Sabit Arz)</small>',
+        amount: '1,000,000,000 WERR (%100)',
+        amountColor: '#f8fafc',
+        tx: '0x49242804ec9ed65b123f869252f550c07fbe10e2ce2e921b80566531bd62a68d'
+      }
+    ];
+
     let adminSession = { address: null, message: null, signature: null };
 
-    // Pure JS EVM Keccak-256 for deterministic queryHash
     function keccak256Hex(str) {
       const RC = [
         [0,1],[0,0x8082],[0x80000000,0x808a],[0x80000000,0x80008000],[0,0x808b],[0,0x80000001],
@@ -401,7 +634,6 @@
     function getWalletProvider() {
       if (window.rabby) return window.rabby;
       if (window.ethereum) return window.ethereum;
-      alert('Rabby veya MetaMask cüzdan uzantısı bulunamadı!');
       return null;
     }
 
@@ -411,25 +643,52 @@
       } catch (e) {}
     }
 
+    function unlockConsoleUI(session) {
+      adminSession = session;
+      document.getElementById('loginGate').style.display = 'none';
+      document.getElementById('consoleApp').style.display = 'block';
+      const addr = session.address;
+      document.getElementById('authStatusBadge').textContent = `✓ Yetkili İmza: ${addr.slice(0, 6)}...${addr.slice(-4)}`;
+      renderLedgerData(FALLBACK_LEDGER);
+      loadLiveLedger();
+    }
+
+    function lockConsole() {
+      sessionStorage.removeItem('werrealm_admin_session');
+      adminSession = { address: null, message: null, signature: null };
+      document.getElementById('consoleApp').style.display = 'none';
+      document.getElementById('loginGate').style.display = 'flex';
+    }
+
     async function authenticateWithWallet() {
+      const errEl = document.getElementById('gateError');
+      errEl.style.display = 'none';
       const provider = getWalletProvider();
-      if (!provider) return;
+      if (!provider) {
+        errEl.style.display = 'block';
+        errEl.textContent = 'Hata: Tarayıcınızda Rabby veya MetaMask cüzdan uzantısı tespit edilemedi.';
+        return;
+      }
       try {
         const accounts = await provider.request({ method: 'eth_requestAccounts' });
-        const addr = accounts[0];
+        const addr = (accounts[0] || '').toLowerCase();
+        if (!ALLOWED_ADMINS.has(addr)) {
+          errEl.style.display = 'block';
+          errEl.innerHTML = `⛔ <b>YETKİSİZ CÜZDAN ADRESİ:</b><br/>Bağlanan cüzdan (<code>${addr}</code>) Werrealm Sovereign Admin listesinde yer almıyor. Lütfen Kurucu (<code>0x803a...FC19</code>) veya Binance Web3 (<code>0xA089...0024</code>) cüzdanınıza geçin.`;
+          return;
+        }
         const ts = Math.floor(Date.now() / 1000);
-        const msg = `WERREALM_SOVEREIGN_ADMIN_AUTH:${ts}:${addr.toLowerCase()}`;
+        const msg = `WERREALM_SOVEREIGN_ADMIN_AUTH:${ts}:${addr}`;
         const sig = await provider.request({
           method: 'personal_sign',
-          params: [msg, addr]
+          params: [msg, accounts[0]]
         });
-        adminSession = { address: addr, message: msg, signature: sig };
-        const badge = document.getElementById('authStatusBadge');
-        badge.className = 'badge ok';
-        badge.textContent = `✓ Yetkili İmza: ${addr.slice(0, 6)}...${addr.slice(-4)}`;
-        document.getElementById('btnConnectSign').textContent = '✓ Cüzdan Bağlı & İmzalı';
+        const sessionObj = { address: accounts[0], message: msg, signature: sig, ts };
+        sessionStorage.setItem('werrealm_admin_session', JSON.stringify(sessionObj));
+        unlockConsoleUI(sessionObj);
       } catch (err) {
-        alert('İmza doğrulaması iptal edildi: ' + (err.message || err));
+        errEl.style.display = 'block';
+        errEl.textContent = 'İmza doğrulaması iptal edildi: ' + (err.message || err);
       }
     }
 
@@ -455,7 +714,6 @@
       }
       const queryHash = keccak256Hex(inv);
       const weiBig = BigInt(Math.round(werrAmt * 10000)) * (10n ** 14n);
-      // selector burnForReflex(uint256,bytes32) = 0x828d7c72
       const data = '0x828d7c72' + weiBig.toString(16).padStart(64, '0') + queryHash.slice(2).padStart(64, '0');
       try {
         showStatus('burnLog', '⏳ Rabby / MetaMask üzerinde burnForReflex() onayı bekleniyor...');
@@ -525,7 +783,6 @@
       const werrMin = (werrWei * 9900n) / 10000n;
       const usdcMin = (usdcUnits * 9900n) / 10000n;
       const deadline = BigInt(Math.floor(Date.now() / 1000) + 1200);
-      // selector addLiquidity(address,address,bool,uint256,uint256,uint256,uint256,address,uint256) = 0x5a47ddc3
       const sel = keccak256Hex('addLiquidity(address,address,bool,uint256,uint256,uint256,uint256,address,uint256)').slice(0, 10);
       const data = sel
         + WERR_ADDR.slice(2).toLowerCase().padStart(64, '0')
@@ -550,10 +807,6 @@
     }
 
     async function submitLedgerEntry(entryType) {
-      if (!adminSession.signature) {
-        await authenticateWithWallet();
-        if (!adminSession.signature) return;
-      }
       const logId = entryType === 'income' ? 'incLog' : 'expLog';
       let payload = { auth: adminSession, entry_type: entryType };
       if (entryType === 'income') {
@@ -586,31 +839,58 @@
       }
     }
 
+    function renderLedgerData(d) {
+      const s = d.summary || {};
+      const b = d.token_burn_strategy || {};
+      document.getElementById('kpiRev').textContent = `$${Number(s.total_gross_revenue_usd || 0).toFixed(2)}`;
+      document.getElementById('kpiExp').textContent = `-$${Number(s.total_operating_expenses_usd || 0).toFixed(2)}`;
+      document.getElementById('kpiSurplus').textContent = `+$${Number(s.net_operational_surplus_usd || 0).toFixed(2)}`;
+      document.getElementById('kpiMargin').textContent = `Net Marj: +${s.operating_margin_percentage}% (${Number(b.target_burn_werr_nominal || 0).toLocaleString('en-US')} WERR Kota)`;
+      const burned = (b.burn_events || []).reduce((acc, e) => acc + Number(e.werr_burned || 0), 0);
+      const rem = Math.max(0, Number(b.target_burn_werr_nominal || 0) - burned);
+      document.getElementById('kpiBurned').textContent = `${burned.toLocaleString('en-US')} WERR`;
+      document.getElementById('kpiRemaining').textContent = `Kalan Dönem Kotası: ${rem.toLocaleString('en-US')} WERR ($${(rem / 1000).toFixed(2)})`;
+
+      const incBody = document.querySelector('#tblIncomes tbody');
+      incBody.innerHTML = (d.incomes || []).map(i =>
+        `<tr><td class="mono">${i.id}</td><td>${i.date}</td><td><b>${i.product_platform}</b><br/><small style="color:#94a3b8">${i.counterparty} · ${i.tier || ''}</small></td><td class="mono" style="color:#10b981;font-weight:700">+$${Number(i.amount_usd).toFixed(2)}</td></tr>`
+      ).join('');
+
+      const expBody = document.querySelector('#tblExpenses tbody');
+      expBody.innerHTML = (d.expenses || []).map(e =>
+        `<tr><td class="mono">${e.id}</td><td>${e.category}</td><td>${e.item}<br/><small style="color:#94a3b8">Vade: ${e.due_date || '-'} · Durum: <b>${e.status || 'ACCRUED'}</b></small></td><td class="mono" style="color:#f87171;font-weight:700">-$${Number(e.amount_usd).toFixed(2)}</td></tr>`
+      ).join('');
+
+      const burnRows = (b.burn_events || []).map(ev => ({
+        id: ev.event_id,
+        badge: '🔥 ON-CHAIN BURN',
+        badgeColor: '#f59e0b',
+        date: `${(ev.timestamp_utc || '').slice(0, 10)} · Blok ${ev.block_number ? Number(ev.block_number).toLocaleString('en-US') : 'Confirmed'}`,
+        desc: `<b>${ev.product_platform}</b><br/><small style="color:#94a3b8">Fatura / Ref: <code>${ev.invoice_no}</code> · Kalıcı Arz İmhası</small>`,
+        amount: `-${Number(ev.werr_burned).toLocaleString('en-US')} WERR`,
+        amountColor: '#f59e0b',
+        tx: ev.tx_hash
+      }));
+
+      const allOnChain = [...burnRows, ...STATIC_ONCHAIN_MILESTONES];
+      const onChainBody = document.querySelector('#tblOnChain tbody');
+      onChainBody.innerHTML = allOnChain.map(r =>
+        `<tr>
+          <td class="mono"><b>${r.id}</b><br/><span style="color:${r.badgeColor};font-size:0.72rem;font-weight:700;">${r.badge}</span></td>
+          <td class="mono" style="font-size:0.78rem;color:#cbd5e1;">${r.date}</td>
+          <td>${r.desc}</td>
+          <td class="mono" style="color:${r.amountColor};font-weight:700;">${r.amount}</td>
+          <td><a class="tx-link" href="https://basescan.org/tx/${r.tx}" target="_blank" rel="noopener">BaseScan (${r.tx.slice(0, 10)}...) ↗</a></td>
+        </tr>`
+      ).join('');
+    }
+
     async function loadLiveLedger() {
       try {
         const res = await fetch(`${API_BASE}/treasury/ledger`, { mode: 'cors' });
         if (!res.ok) return;
         const d = await res.json();
-        const s = d.summary || {};
-        const b = d.token_burn_strategy || {};
-        document.getElementById('kpiRev').textContent = `$${Number(s.total_gross_revenue_usd || 0).toFixed(2)}`;
-        document.getElementById('kpiExp').textContent = `-$${Number(s.total_operating_expenses_usd || 0).toFixed(2)}`;
-        document.getElementById('kpiSurplus').textContent = `+$${Number(s.net_operational_surplus_usd || 0).toFixed(2)}`;
-        document.getElementById('kpiMargin').textContent = `Net Marj: +${s.operating_margin_percentage}% (${Number(b.target_burn_werr_nominal || 0).toLocaleString('en-US')} WERR Kota)`;
-        const burned = (b.burn_events || []).reduce((acc, e) => acc + Number(e.werr_burned || 0), 0);
-        const rem = Math.max(0, Number(b.target_burn_werr_nominal || 0) - burned);
-        document.getElementById('kpiBurned').textContent = `${burned.toLocaleString('en-US')} WERR`;
-        document.getElementById('kpiRemaining').textContent = `Kalan Dönem Kotası: ${rem.toLocaleString('en-US')} WERR ($${(rem / 1000).toFixed(2)})`;
-
-        const incBody = document.querySelector('#tblIncomes tbody');
-        incBody.innerHTML = (d.incomes || []).map(i =>
-          `<tr><td class="mono">${i.id}</td><td>${i.date}</td><td><b>${i.product_platform}</b><br/><small style="color:#94a3b8">${i.counterparty}</small></td><td class="mono" style="color:#10b981;font-weight:700">$${Number(i.amount_usd).toFixed(2)}</td></tr>`
-        ).join('');
-
-        const expBody = document.querySelector('#tblExpenses tbody');
-        expBody.innerHTML = (d.expenses || []).map(e =>
-          `<tr><td class="mono">${e.id}</td><td>${e.category}</td><td>${e.item}</td><td class="mono" style="color:#f87171;font-weight:700">-$${Number(e.amount_usd).toFixed(2)}</td></tr>`
-        ).join('');
+        renderLedgerData(d);
       } catch (e) {}
     }
 
@@ -619,7 +899,12 @@
       document.getElementById('incDate').value = today;
       document.getElementById('expDate').value = today;
       updateBurnPreview();
-      loadLiveLedger();
+      try {
+        const saved = JSON.parse(sessionStorage.getItem('werrealm_admin_session') || 'null');
+        if (saved && saved.signature && saved.address && ALLOWED_ADMINS.has(saved.address.toLowerCase()) && (Math.floor(Date.now() / 1000) - saved.ts < 3600)) {
+          unlockConsoleUI(saved);
+        }
+      } catch (e) {}
     });
   </script>
 </body>
