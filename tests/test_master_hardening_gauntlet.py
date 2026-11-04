@@ -165,11 +165,11 @@ class TestWerrealmHardeningGauntlet(unittest.TestCase):
         engine = WerrBuybackBurnEngine()
         rep = engine.generate_surplus_buyback_report()
         self.assertEqual(rep["already_burned_werr"], 99000.0)
-        self.assertEqual(rep["remaining_period_burn_werr"], 31000.0)
+        self.assertEqual(rep["remaining_period_burn_werr"], 1000.0)
         self.assertEqual(rep["next_reflex_burn_instruction"]["selector"], "0x828d7c72")
         self.assertEqual(
             rep["next_reflex_burn_instruction"]["werr_amount_wei"],
-            "31000000000000000000000"
+            "1000000000000000000000"
         )
 
 if __name__ == "__main__":

@@ -3,7 +3,7 @@
 **Governing Institution:** ITOUCH BILISIM SISTEMLERI LTD. STI.  
 **R&D Campus:** Cukurova University Science Park (Teknokent), Adana, Turkey  
 **Single Source of Truth:** `werrealm/data/treasury_ledger.json`  
-**Last Audit Timestamp:** 2026-11-04T10:26:09Z  
+**Last Audit Timestamp:** 2026-11-04T18:32:58Z  
 
 ---
 
@@ -14,9 +14,9 @@ Werrealm operates on a self-sustaining, revenue-backed DePIN model. Commercial r
 | Financial Metric | Amount (USD) | Status / Notes |
 | :--- | :--- | :--- |
 | **Gross Revenue (Inflow)** | **$598.00** | Verified Commercial B2B Contracts |
-| **Operating Expenses (OpEx)** | **-$468.00** | Bare-metal cluster & developer tooling |
-| **Net Operational Surplus** | **+$130.00** | **Net Free Cash Flow (+21.74%)** |
-| **Allocated Burn Reserve** | **$130.00** | **100% of Net Surplus earmarked for $WERR Burn** |
+| **Operating Expenses (OpEx)** | **-$498.00** | Bare-metal cluster & developer tooling |
+| **Net Operational Surplus** | **+$100.00** | **Net Free Cash Flow (+16.72%)** |
+| **Allocated Burn Reserve** | **$100.00** | **100% of Net Surplus earmarked for $WERR Burn** |
 | **Financial Health Rating** | **SUSTAINABLE_PILOT_PHASE** | Net Sustainable from Genesis Month |
 
 ---
@@ -37,6 +37,7 @@ Werrealm operates on a self-sustaining, revenue-backed DePIN model. Commercial r
 | `EXP-2026-11-001` | Bare-Metal Infrastructure | pcworm-root Genesis Core Server (Dual Intel Xeon E5, 40 vCPUs, 256 GB RAM, 5.9 TB Storage) | **$250.00** | 2026-11-30 | `ACCRUED` |
 | `EXP-2026-11-002` | Validator Sentry Node | mechsrv Defense & Sentry Validator (Enterprise Xeon, 24 GB RAM, High-IOPS SSD) | **$200.00** | 2026-11-30 | `ACCRUED` |
 | `EXP-2026-11-003` | Developer Tooling & CI/CD | GitHub Pro Team Plan (4 Seats @ $4.50/seat) | **$18.00** | 2026-11-30 | `ACCRUED` |
+| `EXP-2026-11-004` | Domain & DNS Infrastructure | werrealm.network Sovereign Domain Registration & DNS (1 Year) | **$30.00** | 2026-11-04 | `PAID` |
 
 ---
 
@@ -44,8 +45,8 @@ Werrealm operates on a self-sustaining, revenue-backed DePIN model. Commercial r
 
 * **Burn Policy:** `HYBRID_SOVEREIGN_BURN`
 * **Target Dead Address:** [`0x000000000000000000000000000000000000dEaD`](https://basescan.org/address/0x000000000000000000000000000000000000dEaD)
-* **Monthly Net Surplus Allocated:** **$130.00 USD**
-* **Target Token Burn Quota (Genesis Baseline):** **130,000 WERR**
+* **Monthly Net Surplus Allocated:** **$100.00 USD**
+* **Target Token Burn Quota (Genesis Baseline):** **100,000 WERR**
 * **Execution Mechanism:**
   1. **Proof-of-Sale Event Burns:** Immediate on-chain burn anchored with client invoice/receipt proof.
   2. **Surplus Sinking Fund:** Month-end net operational surplus executed on-chain to remove tokens from circulating supply.

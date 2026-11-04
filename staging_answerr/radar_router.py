@@ -3144,3 +3144,147 @@ def get_werr_market_ticker(request: Request):
     except Exception:
         raise HTTPException(status_code=500, detail="Market ticker audit error")
 
+_SOVEREIGN_ADMIN_WALLETS = {
+    "0x803a439fa8f7cf078302b51111ae003b5221fc19",
+    "0xa089377506edaee71d90cdfc5ddc84e24d5c0024",
+    "0x2034422f8ba7a38981a0d4e7dc3ed80fe859c0c2"
+}
+
+def _verify_sovereign_admin_sig(auth_obj: dict) -> str:
+    if not isinstance(auth_obj, dict):
+        raise HTTPException(status_code=401, detail="Missing wallet signature auth object")
+    msg = str(auth_obj.get("message", ""))
+    sig = str(auth_obj.get("signature", ""))
+    if not msg.startswith("WERREALM_SOVEREIGN_ADMIN_AUTH:") or not sig:
+        raise HTTPException(status_code=401, detail="Invalid admin auth challenge format")
+    parts = msg.split(":")
+    if len(parts) < 3:
+        raise HTTPException(status_code=401, detail="Malformed challenge")
+    ts = int(parts[1])
+    if abs(int(time.time()) - ts) > 3600:
+        raise HTTPException(status_code=401, detail="Signature session expired (please sign again)")
+    from eth_account import Account
+    from eth_account.messages import encode_defunct
+    recovered = Account.recover_message(encode_defunct(text=msg), signature=sig).lower()
+    if recovered not in _SOVEREIGN_ADMIN_WALLETS:
+        raise HTTPException(status_code=403, detail=f"Wallet {recovered} is not an authorized Sovereign Admin")
+    return recovered
+
+@radar_router.get("/treasury/ledger", summary="Live Sovereign Treasury Financial & Burn Ledger (SSOT)")
+def get_werr_treasury_ledger(request: Request):
+    _check_werrealm_public_rate_limit(request)
+    _ensure_werrealm_path()
+    try:
+        from scripts.treasury_ledger_manager import load_ledger, recalculate
+        data = recalculate(load_ledger())
+        return JSONResponse(content=data, headers={"Access-Control-Allow-Origin": "*"})
+    except Exception:
+        raise HTTPException(status_code=500, detail="Ledger load error")
+
+@radar_router.options("/treasury/admin/{subpath:path}")
+def options_treasury_admin(subpath: str):
+    return Response(
+        status_code=204,
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization"
+        }
+    )
+
+@radar_router.post("/treasury/admin/entry", summary="Add Signed Income or Expense Entry to Sovereign Ledger")
+async def add_werr_treasury_entry(request: Request):
+    _check_werrealm_public_rate_limit(request)
+    _ensure_werrealm_path()
+    body = await request.json()
+    _verify_sovereign_admin_sig(body.get("auth") or {})
+    from scripts.treasury_ledger_manager import load_ledger, recalculate, save_ledger, export_markdown
+    data = load_ledger()
+    etype = body.get("entry_type", "")
+    period = data.get("period", "2026-11")
+    added_id = ""
+    if etype == "income":
+        amt = float(body.get("amount_usd") or 0)
+        if amt <= 0:
+            raise HTTPException(status_code=400, detail="Amount must be > 0")
+        idx = len(data.get("incomes", [])) + 1
+        added_id = f"INC-{period}-{idx:03d}"
+        data.setdefault("incomes", []).append({
+            "id": added_id,
+            "date": body.get("date") or time.strftime("%Y-%m-%d"),
+            "product_platform": str(body.get("product_platform") or "Werracle Risk Radar"),
+            "tier": str(body.get("tier") or "Enterprise Subscription"),
+            "counterparty": str(body.get("counterparty") or "Enterprise Client"),
+            "invoice_no": str(body.get("invoice_no") or ""),
+            "amount_usd": round(amt, 2),
+            "billing_cycle": "Monthly",
+            "payment_status": "PAID_CONFIRMED"
+        })
+    elif etype == "expense":
+        amt = float(body.get("amount_usd") or 0)
+        if amt <= 0:
+            raise HTTPException(status_code=400, detail="Amount must be > 0")
+        idx = len(data.get("expenses", [])) + 1
+        added_id = f"EXP-{period}-{idx:03d}"
+        data.setdefault("expenses", []).append({
+            "id": added_id,
+            "category": str(body.get("category") or "Infrastructure"),
+            "item": str(body.get("item") or "Operational Expense"),
+            "amount_usd": round(amt, 2),
+            "period": period,
+            "due_date": body.get("due_date") or time.strftime("%Y-%m-%d"),
+            "status": str(body.get("status") or "PAID")
+        })
+    else:
+        raise HTTPException(status_code=400, detail="Invalid entry_type")
+
+    data = recalculate(data)
+    save_ledger(data)
+    export_markdown(data)
+    _WERREALM_MARKET_CACHE["ts"] = 0.0
+    return JSONResponse(
+        content={"success": True, "added_id": added_id, "summary": data["summary"]},
+        headers={"Access-Control-Allow-Origin": "*"}
+    )
+
+@radar_router.post("/treasury/admin/burn-record", summary="Record Signed On-Chain Burn Transaction in Sovereign Ledger")
+async def record_werr_onchain_burn(request: Request):
+    _check_werrealm_public_rate_limit(request)
+    _ensure_werrealm_path()
+    body = await request.json()
+    signer = _verify_sovereign_admin_sig(body.get("auth") or {})
+    tx_hash = str(body.get("tx_hash") or "").strip()
+    werr_burned = float(body.get("werr_burned") or 0)
+    if not tx_hash.startswith("0x") or len(tx_hash) != 66 or werr_burned <= 0:
+        raise HTTPException(status_code=400, detail="Invalid tx_hash or werr_burned")
+    from scripts.treasury_ledger_manager import load_ledger, recalculate, save_ledger, export_markdown
+    data = load_ledger()
+    period = data.get("period", "2026-11")
+    evts = data.setdefault("token_burn_strategy", {}).setdefault("burn_events", [])
+    idx = len(evts) + 1
+    evt_id = f"BURN-{period}-{idx:03d}"
+    evts.append({
+        "event_id": evt_id,
+        "type": "ONCHAIN_REFLEX_BURN",
+        "timestamp_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "block_number": 0,
+        "tx_hash": tx_hash,
+        "explorer_url": f"https://basescan.org/tx/{tx_hash}",
+        "product_platform": str(body.get("product_platform") or "Werrealm Sovereign Burn"),
+        "invoice_no": str(body.get("invoice_no") or "REFLEX-BURN"),
+        "amount_usd": round(werr_burned / 1000.0, 2),
+        "werr_burned": round(werr_burned, 4),
+        "from_wallet": signer,
+        "dead_address": "0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2 (burnForReflex)",
+        "status": "CONFIRMED_ON_CHAIN"
+    })
+    data["summary"]["total_werr_burned_to_date"] = sum(float(e.get("werr_burned", 0)) for e in evts)
+    data = recalculate(data)
+    save_ledger(data)
+    export_markdown(data)
+    _WERREALM_MARKET_CACHE["ts"] = 0.0
+    return JSONResponse(
+        content={"success": True, "event_id": evt_id, "summary": data["summary"]},
+        headers={"Access-Control-Allow-Origin": "*"}
+    )
+
