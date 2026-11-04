@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /docs/docs/
+
+Sitemap: https://werrealm.network/sitemap.xml
