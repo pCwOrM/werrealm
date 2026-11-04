@@ -1253,6 +1253,26 @@
         }, 2200);
       });
     }
+
+    async function syncLiveWerrealmTelemetry() {
+      try {
+        const res = await fetch('https://radar.werracle.com/v1/radar/treasury/health', { mode: 'cors' });
+        if (!res.ok) return;
+        const data = await res.json();
+        const m = data.metrics || {};
+        const w = data.werralim_living_cell || {};
+        const pill = document.querySelector('.hero .pill');
+        if (pill && m.effective_circulating_werr && w.heartbeats) {
+          pill.innerHTML = '<span class="pill-dot"></span> PHASE 1 LIVE · ' + Number(m.effective_circulating_werr).toLocaleString('en-US') + ' ACTIVE $WERR · WERRALIM HEARTBEAT #' + Number(w.heartbeats).toLocaleString('en-US');
+        }
+      } catch (err) {
+        // Fallback to static verified snapshot
+      }
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+      syncLiveWerrealmTelemetry();
+      setInterval(syncLiveWerrealmTelemetry, 45000);
+    });
   </script>
 </body>
 </html>

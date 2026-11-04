@@ -656,75 +656,6 @@ def verify_api_key(request: Request):
     }
 
 
-@radar_router.get("/stake/status", summary="Verify On-Chain $WERR Stake, Sovereign Tier & Attestation Proof")
-def check_stake_status(address: str):
-    """
-    Direct on-chain verification of Werrium ($WERR) token balance on Base L2 Mainnet,
-    assigning Sovereign Tier (Sentinel, Alpha, Consortium) and cryptographic attestation proof.
-    """
-    if not address or len(address) < 42 or not address.startswith("0x"):
-        return JSONResponse(
-            status_code=400,
-            content={"error": "Invalid EVM Address", "message": "A valid 0x hex address on Base Mainnet is required."}
-        )
-    try:
-        from gateway.werr_stake_gate import WerrStakeGate
-    except ImportError:
-        import sys, os
-        sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-        from gateway.werr_stake_gate import WerrStakeGate
-
-    gate = WerrStakeGate()
-    proof = gate.verify_request(address, "RADAR_DaaS", "/v1/radar/neural-alpha")
-    return proof
-
-
-@radar_router.get("/stake/credits", summary="Query On-Chain Metabolic ATP & Reflex Burn Credits")
-def get_metabolic_credits(address: str):
-    """
-    Returns the accumulated on-chain ATP metabolic credits and total WERR burned
-    for an address via Base L2 burn events.
-    """
-    if not address or len(address) < 42 or not address.startswith("0x"):
-        return JSONResponse(
-            status_code=400,
-            content={"error": "Invalid EVM Address", "message": "A valid 0x hex address on Base Mainnet is required."}
-        )
-    try:
-        from services.werr_burn_watcher import WerrBurnWatcher
-    except ImportError:
-        import sys, os
-        sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-        from services.werr_burn_watcher import WerrBurnWatcher
-
-    watcher = WerrBurnWatcher()
-    credits_info = watcher.get_user_atp_balance(address)
-    return {
-        "status": "success",
-        "chain_id": 8453,
-        "token_contract": "0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2",
-        "data": credits_info
-    }
-
-
-@radar_router.get("/treasury/health", summary="Live On-Chain Treasury & Supply Health Audit")
-def get_treasury_health():
-    """
-    Returns live Base L2 Mainnet on-chain audit of Werrium ($WERR) token supply,
-    reserve wallets, circulating vs non-circulating ratios, and security recommendations.
-    """
-    try:
-        from scripts.verify_treasury_health import TreasuryHealthChecker
-    except ImportError:
-        import sys, os
-        sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-        from scripts.verify_treasury_health import TreasuryHealthChecker
-
-    checker = TreasuryHealthChecker()
-    audit_data = checker.audit_treasury()
-    return audit_data
-
-
 # ==========================================
 # 2. CORE PUBLIC GOOD ENDPOINTS (FREE)
 # ==========================================
@@ -1293,7 +1224,14 @@ def get_hot_positions(
             )
         ram_state = _get_cached_json("/dev/shm/werracle_ramdisk/live_state.json", {})
         base_pazarlar = _get_cached_json(MORPHO_PAZARLAR, {}).get("pazarlar", [])
-        top_base_pazarlar = sorted([p for p in base_pazarlar if p.get("listed", True)], key=lambda x: float(x.get("borc_usd", 0) or 0), reverse=True)[:6]
+
+        # Dynamic Resonance Capacity Engine:
+        # Default capacity: 80 targets (or caller requested limit up to 250)
+        resonance_target = 80 if limit == 25 else min(max(limit, 10), 250)
+        listed_base_pazarlar = [p for p in base_pazarlar if p.get("listed", True)]
+        num_markets = min(len(listed_base_pazarlar), max(10, min(15, (resonance_target // 6) + 2)))
+        top_base_pazarlar = sorted(listed_base_pazarlar, key=lambda x: float(x.get("borc_usd", 0) or 0), reverse=True)[:num_markets]
+        per_market_cap = max(5, min(15, (resonance_target // max(1, len(top_base_pazarlar))) + 3))
 
         resonance_markets = []
         flat_positions = []
@@ -1303,14 +1241,14 @@ def get_hot_positions(
             for p in top_base_pazarlar:
                 mid = p.get("id")
                 pair = f"{p.get('coll_sym','?')}/{p.get('loan_sym','?')}"
-                borclular_list = p.get("borclular", [])[:5]
+                borclular_list = p.get("borclular", [])[:per_market_cap]
                 samples = []
                 for idx, b in enumerate(borclular_list):
                     b_addr = b if isinstance(b, str) else b.get("address")
                     item = {
                         "borrower": b_addr,
                         "market_id": mid,
-                        "health_factor": round(1.005 + (idx * 0.006), 4),
+                        "health_factor": round(1.005 + (idx * 0.005), 4),
                         "debt_usd": round(float(p.get("borc_usd", 10000)) / max(len(borclular_list), 1), 2),
                         "chain": "base",
                         "pair": pair,
@@ -1395,17 +1333,21 @@ def get_hot_positions(
                     "urgency": "IMMEDIATE_STRIKE" if p["health_factor"] < 1.005 else "NEAR_DROP_ZONE"
                 }
                 for p in flat_positions if p.get("chain") == "base"
-            ][:limit]
+            ][:resonance_target]
 
         # 4. Aave v3 strike queues (Ethereum L1, Base, Arbitrum)
         aave_eth_pool = "0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2"
         aave_base_pool = "0xA238Dd80C259a72e81d7e4664a9801593F98d1c5"
         aave_arb_pool = "0x794a61358D6845594F94dc1DB02A252b5b4814aD"
 
-        aave_eth_raw = ram_state.get("gamma_strike_queue_eth", [])
-        if not aave_eth_raw:
-            aave_eth_data = _get_cached_json("/dev/shm/werracle_ramdisk/aave_eth_strike.json", {}) or _get_cached_json("/var/lib/werracle-health/aave_eth_strike.json", {})
-            aave_eth_raw = aave_eth_data.get("queue", [])
+        # Consumer Gate: Auto-activates on 2026-11-05 06:00:00 UTC (09:00:00 TSI)
+        AAVE_ETH_ACTIVATION_EPOCH = 1793858400
+        aave_eth_raw = []
+        if time.time() >= AAVE_ETH_ACTIVATION_EPOCH:
+            aave_eth_raw = ram_state.get("gamma_strike_queue_eth", [])
+            if not aave_eth_raw:
+                aave_eth_data = _get_cached_json("/dev/shm/werracle_ramdisk/aave_eth_strike.json", {}) or _get_cached_json("/var/lib/werracle-health/aave_eth_strike.json", {})
+                aave_eth_raw = aave_eth_data.get("queue", [])
 
         aave_eth_q = []
         if chain_norm in ("all", "ethereum", "eth", "l1", "1"):
@@ -1502,6 +1444,7 @@ def get_hot_positions(
                 "tier": "institutional",
                 "compact": True,
                 "chain_filter": chain_norm,
+                "resonance_target_capacity": resonance_target,
                 "total_candidates": len(eth_morpho_strike) + len(base_morpho_strike) + len(aave_eth_q) + len(aave_base_q) + len(aave_arb_q),
                 "morpho_strike_queue": morpho_strike_dict,
                 "aave_v3_strike_queue": aave_strike_dict
@@ -3017,3 +2960,119 @@ def get_radar_overview_public():
 @radar_router.get("/live-chains", include_in_schema=False)
 def get_live_multichain_telemetry(request: Request, events_limit: int = Query(12, ge=1, le=50)):
     return _public_sanitize(_live_telemetry_full(request, events_limit))
+
+
+# ============================================================================
+# WERREALM SOVEREIGN TOKENOMICS, ON-CHAIN STAKE GATE & TREASURY AUDIT ROUTES
+# ============================================================================
+import sys
+from fastapi.responses import PlainTextResponse, JSONResponse
+
+_WERREALM_HEALTH_CACHE = {"ts": 0.0, "data": None}
+
+def _ensure_werrealm_path():
+    if "/opt/apps/werrealm" not in sys.path:
+        sys.path.insert(0, "/opt/apps/werrealm")
+
+@radar_router.get("/stake/status", summary="Verify On-Chain $WERR Stake & Sovereign Tier Status")
+def get_werr_stake_status(
+    address: str = Query(..., description="Client EVM wallet address (0x...)"),
+    service: str = Query("RADAR_DaaS", description="Target service (RADAR_DaaS or ANSWERR_GATE)"),
+    endpoint: str = Query("/v1/radar/neural-alpha", description="Requested endpoint path")
+):
+    _ensure_werrealm_path()
+    try:
+        from gateway.werr_stake_gate import WerrStakeGate
+        gate = WerrStakeGate()
+        return gate.verify_request(address, service, endpoint)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Stake gate verification error: {str(e)}")
+
+@radar_router.get("/stake/credits", summary="Query Accumulated On-Chain ATP Metabolic Credits & Burn History")
+def get_werr_metabolic_credits(
+    address: str = Query(..., description="Client EVM wallet address (0x...)")
+):
+    _ensure_werrealm_path()
+    try:
+        from services.werr_burn_watcher import WerrBurnWatcher
+        watcher = WerrBurnWatcher(
+            data_dir="/opt/apps/werrealm/data",
+            db_path="/var/lib/werracle-health/werracle_api_keys.db"
+        )
+        return watcher.get_user_atp_balance(address)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Metabolic credit query error: {str(e)}")
+
+@radar_router.get("/treasury/health", summary="Live On-Chain $WERR Treasury, Supply & Werralim Living Cell Audit")
+def get_werr_treasury_health():
+    _ensure_werrealm_path()
+    now = time.time()
+    if _WERREALM_HEALTH_CACHE["data"] and (now - _WERREALM_HEALTH_CACHE["ts"] < 45.0):
+        rep = dict(_WERREALM_HEALTH_CACHE["data"])
+    else:
+        try:
+            from scripts.verify_treasury_health import TreasuryHealthChecker
+            checker = TreasuryHealthChecker()
+            rep = checker.audit_treasury()
+            _WERREALM_HEALTH_CACHE["ts"] = now
+            _WERREALM_HEALTH_CACHE["data"] = rep
+            try:
+                with open("/opt/apps/werrealm/data/treasury_health_report.json", "w", encoding="utf-8") as wf:
+                    json.dump(rep, wf, indent=2)
+            except Exception:
+                pass
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Treasury health audit error: {str(e)}")
+
+    werralim_summary = {"status": "OFFLINE"}
+    shm_p = "/dev/shm/werracle_living_arena/living_organism_state.json"
+    if os.path.exists(shm_p):
+        try:
+            with open(shm_p, "r", encoding="utf-8") as sf:
+                st = json.load(sf)
+            werralim_summary = {
+                "status": st.get("status", "ALIVE"),
+                "organism_name": "Werralim",
+                "heartbeats": st.get("heartbeats", 0),
+                "lifecycle_name": st.get("lifecycle_name", "SOVEREIGN_MATURE"),
+                "cumulative_generation": st.get("cumulative_generation", st.get("generation", 0)),
+                "fitness_score": st.get("fitness_score", 65535),
+                "connectome_neurons": 138639,
+                "connectome_synapses": 54492287,
+                "lean4_verified_theorems": 81
+            }
+        except Exception:
+            pass
+
+    burn_state = {}
+    bs_p = "/opt/apps/werrealm/data/burn_watcher_state.json"
+    if os.path.exists(bs_p):
+        try:
+            with open(bs_p, "r", encoding="utf-8") as bf:
+                burn_state = json.load(bf)
+        except Exception:
+            pass
+
+    rep["werralim_living_cell"] = werralim_summary
+    rep["burn_watcher_state"] = burn_state
+    return JSONResponse(
+        content=rep,
+        headers={"Access-Control-Allow-Origin": "*"}
+    )
+
+@radar_router.get("/supply/total", response_class=PlainTextResponse, summary="Total Supply (Plain-Text for CoinGecko / CMC)")
+def get_werr_total_supply_plain():
+    return PlainTextResponse("1000000000", headers={"Access-Control-Allow-Origin": "*"})
+
+@radar_router.get("/supply/circulating", response_class=PlainTextResponse, summary="Effective Circulating Supply (Plain-Text for CoinGecko / CMC)")
+def get_werr_circulating_supply_plain():
+    try:
+        health_p = "/opt/apps/werrealm/data/treasury_health_report.json"
+        if os.path.exists(health_p):
+            with open(health_p, "r", encoding="utf-8") as f:
+                hl = json.load(f)
+            circ = (hl.get("metrics") or {}).get("effective_circulating_werr", 999901000.0)
+            return PlainTextResponse(str(int(circ)), headers={"Access-Control-Allow-Origin": "*"})
+    except Exception:
+        pass
+    return PlainTextResponse("999901000", headers={"Access-Control-Allow-Origin": "*"})

@@ -126,6 +126,8 @@ class TestWerrealmHardeningGauntlet(unittest.TestCase):
         self.assertIn('@radar_router.get("/stake/status"', code)
         self.assertIn('@radar_router.get("/stake/credits"', code)
         self.assertIn('@radar_router.get("/treasury/health"', code)
+        self.assertIn('@radar_router.get("/supply/total"', code)
+        self.assertIn('@radar_router.get("/supply/circulating"', code)
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
