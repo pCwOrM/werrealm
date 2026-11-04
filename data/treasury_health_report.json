@@ -1,7 +1,7 @@
 {
   "version": "v1.1.0-Live-RPC-Auditor",
-  "timestamp_utc": "2026-11-04T11:32:23Z",
-  "block_number": 53501306,
+  "timestamp_utc": "2026-11-04T14:20:57Z",
+  "block_number": 53506363,
   "chain_id": 8453,
   "token_contract": "0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2",
   "total_supply_werr": 1000000000.0,
@@ -45,6 +45,14 @@
       "balance_wei": "99000000000000000000000",
       "balance_werr": 99000.0,
       "percentage_of_supply": 0.0099
+    },
+    "timelock_vesting": {
+      "address": "0x839A6d7E726D60EA2B587e793aE36342297e8C63",
+      "label": "WerrTreasuryTimelock (90d Cliff / 24m Linear Vesting)",
+      "type": "Immutable Vesting Smart Contract",
+      "balance_wei": "0",
+      "balance_werr": 0.0,
+      "percentage_of_supply": 0.0
     }
   },
   "metrics": {
@@ -52,6 +60,8 @@
     "safe_multisig_pct": 94.9501,
     "treasury_reserve_werr": 49900000.0,
     "treasury_reserve_pct": 4.99,
+    "timelock_vesting_werr": 0.0,
+    "timelock_vesting_pct": 0.0,
     "stakeholder_holding_werr": 500000.0,
     "stakeholder_holding_pct": 0.05,
     "other_circulating_werr": 0.0,
@@ -64,7 +74,9 @@
     "centralization_risk": "RESOLVED_SAFE_ACTIVE",
     "safe_multisig_deployed": true,
     "safe_multisig_address": "0x7CC5fd367e210F4678Bcfca054cbe0F87291E355",
-    "recommendation": "Treasury reserve migration complete (Safe 2/2 multisig holds >90% of supply)",
+    "timelock_vesting_deployed": true,
+    "timelock_vesting_address": "0x839A6d7E726D60EA2B587e793aE36342297e8C63",
+    "recommendation": "Treasury reserve migration complete (Safe multisig holds >90% of supply; Timelock deployed)",
     "contract_verified": true,
     "no_mint_guarantee": true
   }

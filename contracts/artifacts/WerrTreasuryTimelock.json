@@ -1,0 +1,169 @@
+{
+  "contractName": "WerrTreasuryTimelock",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_token",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_beneficiary",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_cliffDuration",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_vestingDuration",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "beneficiary",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "TokensReleased",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "beneficiary",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "cliffDuration",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "releasableAmount",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "release",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "startTimestamp",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "token",
+      "outputs": [
+        {
+          "internalType": "contract IERC20",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "totalReleased",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "vestedAmount",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "vestingDuration",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": "610120604052348015610010575f80fd5b5060405161086338038061086383398101604081905261002f91610172565b6001600160a01b03841661008a5760405162461bcd60e51b815260206004820152601560248201527f496e76616c696420746f6b656e2061646472657373000000000000000000000060448201526064015b60405180910390fd5b6001600160a01b0383166100e05760405162461bcd60e51b815260206004820152601b60248201527f496e76616c69642062656e6566696369617279206164647265737300000000006044820152606401610081565b81811161012f5760405162461bcd60e51b815260206004820152601960248201527f56657374696e67206d7573742065786365656420636c696666000000000000006044820152606401610081565b6001600160a01b039384166080529190921660a0524260c05260e091909152610100526101b2565b80516001600160a01b038116811461016d575f80fd5b919050565b5f805f8060808587031215610185575f80fd5b61018e85610157565b935061019c60208601610157565b6040860151606090960151949790965092505050565b60805160a05160c05160e051610100516106306102335f395f818160990152818161029c01526102ef01525f818161012a015261024301525f818161015901528181610264015281816102bd015261031301525f818160d301528181610400015261046501525f8181610180015281816101c3015261049401526106305ff3fe608060405234801561000f575f80fd5b5060043610610090575f3560e01c806386d1a69f1161006357806386d1a69f1461011d578063d85349f714610125578063e33b7de31461014c578063e6fd48bc14610154578063fc0c546a1461017b575f80fd5b80631514617e1461009457806338af3eed146100ce57806344b1231f1461010d5780635b94008114610115575b5f80fd5b6100bb7f000000000000000000000000000000000000000000000000000000000000000081565b6040519081526020015b60405180910390f35b6100f57f000000000000000000000000000000000000000000000000000000000000000081565b6040516001600160a01b0390911681526020016100c5565b6100bb6101a2565b6100bb610353565b6100bb61036d565b6100bb7f000000000000000000000000000000000000000000000000000000000000000081565b6100bb5f5481565b6100bb7f000000000000000000000000000000000000000000000000000000000000000081565b6100f57f000000000000000000000000000000000000000000000000000000000000000081565b6040516370a0823160e01b81523060048201525f9081906001600160a01b037f000000000000000000000000000000000000000000000000000000000000000016906370a0823190602401602060405180830381865afa158015610208573d5f803e3d5ffd5b505050506040513d601f19601f8201168201806040525081019061022c9190610547565b90505f80548261023c9190610572565b90506102887f00000000000000000000000000000000000000000000000000000000000000007f0000000000000000000000000000000000000000000000000000000000000000610572565b421015610297575f9250505090565b6102e17f00000000000000000000000000000000000000000000000000000000000000007f0000000000000000000000000000000000000000000000000000000000000000610572565b42106102ed5792915050565b7f00000000000000000000000000000000000000000000000000000000000000006103387f00000000000000000000000000000000000000000000000000000000000000004261058b565b610342908361059e565b61034c91906105b5565b9250505090565b5f805461035e6101a2565b610368919061058b565b905090565b5f80610377610353565b90505f81116103db5760405162461bcd60e51b815260206004820152602560248201527f4e6f20746f6b656e73206172652072656c65617361626c6520617420746869736044820152642074696d6560d81b60648201526084015b60405180910390fd5b805f808282546103eb9190610572565b90915550506040518181526001600160a01b037f000000000000000000000000000000000000000000000000000000000000000016907fc7798891864187665ac6dd119286e44ec13f014527aeeb2b8eb3fd413df931799060200160405180910390a260405163a9059cbb60e01b81526001600160a01b037f000000000000000000000000000000000000000000000000000000000000000081166004830152602482018390527f0000000000000000000000000000000000000000000000000000000000000000169063a9059cbb906044016020604051808303815f875af11580156104da573d5f803e3d5ffd5b505050506040513d601f19601f820116820180604052508101906104fe91906105d4565b6105425760405162461bcd60e51b8152602060048201526015602482015274151bdad95b881d1c985b9cd9995c8819985a5b1959605a1b60448201526064016103d2565b919050565b5f60208284031215610557575f80fd5b5051919050565b634e487b7160e01b5f52601160045260245ffd5b808201808211156105855761058561055e565b92915050565b818103818111156105855761058561055e565b80820281158282048414176105855761058561055e565b5f826105cf57634e487b7160e01b5f52601260045260245ffd5b500490565b5f602082840312156105e4575f80fd5b815180151581146105f3575f80fd5b939250505056fea2646970667358221220ea4d8a121d180f6776fcb1c0c672e3544733214514cefcb655ba407717790ca464736f6c63430008140033",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.20+commit.a1b79de6\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_token\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_beneficiary\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_cliffDuration\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_vestingDuration\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"beneficiary\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"TokensReleased\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"beneficiary\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"cliffDuration\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"releasableAmount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"release\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"startTimestamp\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"token\",\"outputs\":[{\"internalType\":\"contract IERC20\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"totalReleased\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"vestedAmount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"vestingDuration\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"constructor\":{\"params\":{\"_beneficiary\":\"Destination multisig / treasury address.\",\"_cliffDuration\":\"Cliff period in seconds (e.g., 90 days = 7,776,000s).\",\"_token\":\"Address of Werrium token (0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2).\",\"_vestingDuration\":\"Total vesting duration in seconds (e.g., 730 days = 24 months = 63,072,000s).\"}}},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"releasableAmount()\":{\"notice\":\"Computes tokens currently available for release.\"},\"release()\":{\"notice\":\"Releases all currently vested tokens to the beneficiary multisig.\"},\"vestedAmount()\":{\"notice\":\"Computes total amount of tokens vested up to the current block.timestamp.\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"<stdin>\":\"WerrTreasuryTimelock\"},\"evmVersion\":\"shanghai\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"<stdin>\":{\"keccak256\":\"0xf0f4423f144bd39b7c65d2d766f6963a5806c6397865550a04e18f2f2d571675\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://980f4e318d28d9a22a8e1de17c5467cf79f85d7ada7b2beb43315bc07c925332\",\"dweb:/ipfs/QmQ3SU1oVTbtMY4hSFv6bjDC6u8oz1Hc4RTdfXi4zUdsxF\"]}},\"version\":1}"
+}

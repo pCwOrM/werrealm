@@ -16,5 +16,17 @@
     "tx_hash": "49242804ec9ed65b123f869252f550c07fbe10e2ce2e921b80566531bd62a68d",
     "timestamp": 1793241894,
     "explorer": "https://basescan.org/address/0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2"
+  },
+  "base_mainnet_timelock": {
+    "contract": "WerrTreasuryTimelock",
+    "address": "0x839A6d7E726D60EA2B587e793aE36342297e8C63",
+    "token": "0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2",
+    "beneficiary": "0x803a439fa8F7cf078302b51111Ae003b5221FC19",
+    "cliff_duration_sec": 7776000,
+    "vesting_duration_sec": 63072000,
+    "tx_hash": "0x0a6bb12d9fe5c1ff7b6a3728d3f5dac40f0790df993025936ee7a4b272e467b7",
+    "block_number": 53506209,
+    "timestamp": 1793801809,
+    "explorer": "https://basescan.org/address/0x839A6d7E726D60EA2B587e793aE36342297e8C63"
   }
 }
