@@ -1,7 +1,7 @@
 {
-  "version": "v1.0.0-Live-RPC-Auditor",
-  "timestamp_utc": "2026-11-03T12:50:42Z",
-  "block_number": 53476942,
+  "version": "v1.1.0-Live-RPC-Auditor",
+  "timestamp_utc": "2026-11-04T10:48:13Z",
+  "block_number": 53499982,
   "chain_id": 8453,
   "token_contract": "0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2",
   "total_supply_werr": 1000000000.0,
@@ -16,7 +16,7 @@
     },
     "genesis_treasury": {
       "address": "0x803a439fa8F7cf078302b51111Ae003b5221FC19",
-      "label": "Werrealm Genesis EOA Key (Migration Source)",
+      "label": "Werrealm Genesis EOA Key (Founder & Operational Reserve)",
       "type": "Genesis Founder EOA",
       "balance_wei": "49900000000000000000000000",
       "balance_werr": 49900000.0,
