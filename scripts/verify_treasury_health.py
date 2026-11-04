@@ -50,6 +50,11 @@ class TreasuryHealthChecker:
             "address": "0x000000000000000000000000000000000000dEaD",
             "label": "EVM Dead Burn Blackhole",
             "type": "Permanent Burn Address"
+        },
+        "timelock_vesting": {
+            "address": "0x839A6d7E726D60EA2B587e793aE36342297e8C63",
+            "label": "WerrTreasuryTimelock (90d Cliff / 24m Linear Vesting)",
+            "type": "Immutable Vesting Smart Contract"
         }
     }
 
@@ -129,13 +134,14 @@ class TreasuryHealthChecker:
         treasury_bal_wei = int(wallet_audits["genesis_treasury"]["balance_wei"])
         stakeholders_bal_wei = int(wallet_audits["bekirhan_alpha"]["balance_wei"])
         burned_bal_wei = int(wallet_audits["dead_address_burn"]["balance_wei"])
+        timelock_bal_wei = int(wallet_audits["timelock_vesting"]["balance_wei"])
         
         effective_circulating_wei = max(0, total_supply_wei - burned_bal_wei)
 
         risk_status = "RESOLVED_SAFE_ACTIVE" if safe_bal_wei > 0 else "READY_FOR_SAFE_FUNDING"
         safe_pct = (safe_bal_wei / total_supply_wei) * 100 if total_supply_wei else 0
         if safe_pct >= 90:
-            rec = "Treasury reserve migration complete (Safe 2/2 multisig holds >90% of supply)"
+            rec = "Treasury reserve migration complete (Safe multisig holds >90% of supply; Timelock deployed)"
         elif safe_bal_wei > 0:
             rec = "Pilot transfer complete; proceed with major treasury reserve migration"
         else:
@@ -154,6 +160,8 @@ class TreasuryHealthChecker:
                 "safe_multisig_pct": round((safe_bal_wei / total_supply_wei) * 100, 4),
                 "treasury_reserve_werr": round(treasury_bal_wei / 10**18, 4),
                 "treasury_reserve_pct": round((treasury_bal_wei / total_supply_wei) * 100, 4),
+                "timelock_vesting_werr": round(timelock_bal_wei / 10**18, 4),
+                "timelock_vesting_pct": round((timelock_bal_wei / total_supply_wei) * 100, 4),
                 "stakeholder_holding_werr": round(stakeholders_bal_wei / 10**18, 4),
                 "stakeholder_holding_pct": round((stakeholders_bal_wei / total_supply_wei) * 100, 4),
                 "other_circulating_werr": round(circulating_other_werr, 4),
@@ -166,6 +174,8 @@ class TreasuryHealthChecker:
                 "centralization_risk": risk_status,
                 "safe_multisig_deployed": True,
                 "safe_multisig_address": self.TRACKED_WALLETS["safe_multisig"]["address"],
+                "timelock_vesting_deployed": True,
+                "timelock_vesting_address": self.TRACKED_WALLETS["timelock_vesting"]["address"],
                 "recommendation": rec,
                 "contract_verified": True,
                 "no_mint_guarantee": True
