@@ -9,7 +9,7 @@
 
 **Werrealm** is the world's first bio-synthetic, neuromorphic, in-consensus oracle blockchain network.
 
-By unifying the **Werror Engine** (Orbital Error Dynamics & Byzantine Fault Immunity), the **Werrite Engine** (Deterministic Q16.16 EVM-Parity & Lean4-Certified Arithmetic Shield), the **Werralim Living Cell Organism** (FlyWire whole-brain connectome with 158,262 **Werron** synapses), the **Werracle In-Consensus Oracle**, and **Lean4 formally verified mathematics** (81 theorems), Werrealm solves the fundamental trilemma of AI on blockchain: zero VRAM consumption, 100% integer EVM parity, and zero-latency biological reflexes.
+By unifying the **Werror Engine** (Orbital Error Dynamics & Byzantine Fault Immunity), the **Werrite Engine** (Deterministic Q16.16 EVM-Parity & Lean4-Certified Arithmetic Shield), the **Werralim Biological Connectome Simulation** (FlyWire whole-brain connectome with 158,262 **Werron** synapses), the **Werracle In-Consensus Oracle**, and **Lean4 formally verified mathematics** (81 theorems), Werrealm solves the fundamental trilemma of AI on blockchain: zero VRAM consumption, 100% integer EVM parity, and zero-latency biological reflexes.
 
 ---
 
