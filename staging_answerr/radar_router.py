@@ -959,7 +959,7 @@ def _live_telemetry_full(request: Request, events_limit: int = 12):
             "service": "werracle-morpho-golge.service",
             "chain": "Base Mainnet",
             "chain_id": 8453,
-            "protocol": "Morpho Blue (Flashblocks Stream)",
+            "protocol": "Morpho Blue (Base 200ms Canonical Stream)",
             "connected": bool(morpho_st.get("baglanti", False)),
             "healthy": (m_age is not None and m_age < 180 and bool(morpho_st.get("baglanti", False))),
             "age_sec": m_age,
@@ -1016,7 +1016,7 @@ def _live_telemetry_full(request: Request, events_limit: int = 12):
             "service": "werracle-base-faz2.service",
             "chain": "Base Mainnet",
             "chain_id": 8453,
-            "protocol": "Aave V3 Flashblocks Faz-2 Shadow",
+            "protocol": "Aave V3 Base 200ms Canonical Shadow",
             "connected": bool(base_faz2.get("baglanti", False)),
             "healthy": (bf2_age is not None and bf2_age < 180 and bool(base_faz2.get("baglanti", False))),
             "age_sec": bf2_age,
@@ -2066,7 +2066,7 @@ def get_radar_dashboard():
             <div class="stat-card">
                 <div class="stat-label">Reflex Decision Speed</div>
                 <div class="stat-val">{overview['realtime_surveillance']['base_l2'].get('decision_compute_ms') or '—'} ms</div>
-                <div class="stat-sub">Decision compute time per Base flashblock (200 ms)</div>
+                <div class="stat-sub">Decision compute time per Base 200ms canonical block</div>
             </div>
         </div>
 

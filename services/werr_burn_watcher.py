@@ -89,9 +89,9 @@ class WerrBurnWatcher:
     
     # RPC Havuzu (Yüksek Erişilebilirlik)
     DEFAULT_RPCS = [
-        "https://mainnet.base.org",
         "https://base-rpc.publicnode.com",
-        "https://base.llamarpc.com"
+        "https://base.drpc.org",
+        "https://mainnet.base.org"
     ]
 
     def __init__(self, data_dir: Optional[str] = None, db_path: Optional[str] = None):
@@ -172,6 +172,7 @@ class WerrBurnWatcher:
             pass
 
     def _rpc_call(self, method: str, params: list) -> Any:
+        last_err = None
         for rpc in self.DEFAULT_RPCS:
             try:
                 res = requests.post(rpc, json={
@@ -179,13 +180,15 @@ class WerrBurnWatcher:
                     "id": 1,
                     "method": method,
                     "params": params
-                }, timeout=6)
+                }, headers={"User-Agent": "WerrealmBurnWatcher/1.2"}, timeout=8)
                 data = res.json()
                 if "result" in data:
                     return data["result"]
-            except Exception:
-                continue
-        raise ConnectionError("Tum Base Mainnet RPC uclari zaman asimina ugradi.")
+                last_err = data.get("error") or res.status_code
+            except Exception as e:
+                last_err = e
+            time.sleep(0.15)
+        raise ConnectionError(f"Tum Base Mainnet RPC uclari basarisiz ({last_err})")
 
     def get_latest_block(self) -> int:
         res = self._rpc_call("eth_blockNumber", [])
@@ -193,8 +196,9 @@ class WerrBurnWatcher:
 
     def scan_burn_events(self, from_block: Optional[int] = None, to_block: Optional[int] = None) -> List[Dict[str, Any]]:
         latest = self.get_latest_block()
-        start = from_block if from_block is not None else self.state.get("last_block", latest - 500)
-        end = to_block if to_block is not None else latest
+        safe_head = max(0, latest - 2)
+        start = from_block if from_block is not None else self.state.get("last_block", max(0, safe_head - 500))
+        end = to_block if to_block is not None else safe_head
 
         if start > end:
             return []
@@ -202,6 +206,7 @@ class WerrBurnWatcher:
         MAX_CHUNK = 2000
         events_found = []
         cur_from = start
+        last_ok = start - 1
 
         while cur_from <= end:
             cur_to = min(cur_from + MAX_CHUNK - 1, end)
@@ -211,7 +216,7 @@ class WerrBurnWatcher:
                 "toBlock": hex(cur_to),
                 "topics": [[self.TOPIC_ATP_BURN, self.TOPIC_REFLEX_BURN, self.TOPIC_TRANSFER]]
             }]
-            
+
             try:
                 logs = self._rpc_call("eth_getLogs", params)
                 for log in logs:
@@ -219,12 +224,15 @@ class WerrBurnWatcher:
                     if parsed:
                         events_found.append(parsed)
                         self._apply_credit(parsed)
+                last_ok = cur_to
             except Exception as e:
                 print(f"[!] Log sorgu uyarisi (Blok {cur_from}-{cur_to}): {e}")
+                break
 
             cur_from = cur_to + 1
 
-        self.state["last_block"] = end
+        if last_ok >= start:
+            self.state["last_block"] = last_ok
         self.state["last_scan_timestamp"] = int(time.time())
         self._save_json(self.state_file, self.state)
         self._save_json(self.credits_file, self.credits)

@@ -108,7 +108,7 @@ DEFAULT_CONFIG = {
             "features": [
                 "1.200 req/dakika Özel Ayrılmış Kapasite (Aylık Sınırsız İstek)",
                 "Rezonans Filtreli Kritik Tasfiyeler (/v1/radar/hot-positions?filter=resonance)",
-                "Çift Zincirli Canlı Gözlem (Base L2 Flashblocks + Arbitrum One Sequencer)",
+                "Çift Zincirli Canlı Gözlem (Base L2 200ms Kanonik Blok Akışı + Arbitrum One Sequencer)",
                 "İşlem Başına OEV Analitiği ve Tarihsel Veri Seti (/v1/radar/oev-analytics)",
                 "25ms Optimize Bellek İçi RAMDisk Gecikmesi",
                 "Özel Webhook & Telegram/Discord Sinyal Boru Hattı"
