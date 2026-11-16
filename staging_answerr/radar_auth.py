@@ -33,14 +33,15 @@ DEFAULT_CONFIG = {
     "network": "base_mainnet",
     "chain_id": 8453,
     "base_rpcs": [
-        "https://mainnet.base.org",
-        "https://base-rpc.publicnode.com"
+        "https://base-rpc.publicnode.com",
+        "https://base.drpc.org",
+        "https://mainnet.base.org"
     ],
     "evm_networks": {
         "base": {
             "name": "Base Mainnet",
             "chain_id": 8453,
-            "rpcs": ["https://mainnet.base.org", "https://base-rpc.publicnode.com"],
+            "rpcs": ["https://base-rpc.publicnode.com", "https://base.drpc.org", "https://mainnet.base.org"],
             "tokens": {
                 "USDC": {"address": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913", "decimals": 6},
                 "USDT": {"address": "0xfde4c96c8593536e31f229ea8f37b2ada2699bb2", "decimals": 6}
@@ -89,6 +90,7 @@ DEFAULT_CONFIG = {
             "features": [
                 "250.000 Karar / Sorgu Aylık Kota (300 req/dk)",
                 "Morpho Blue & Aave v3 Canlı Pozisyonlar (/v1/radar/hot-positions)",
+                "Anti-Liquidation Shield pre-flight gate (POST /v1/radar/shield/check)",
                 "Chainlink SVR Solver Marj & Teklif Analitiği (/v1/radar/solvers)",
                 "Standart 50ms REST API Gateway Erişimi",
                 "Resmi e-Arşiv Uyumlu Onaylı PDF Ticari Fatura (%0 KDV)"
@@ -111,6 +113,8 @@ DEFAULT_CONFIG = {
                 "Çift Zincirli Canlı Gözlem (Base L2 200ms Kanonik Blok Akışı + Arbitrum One Sequencer)",
                 "İşlem Başına OEV Analitiği ve Tarihsel Veri Seti (/v1/radar/oev-analytics)",
                 "25ms Optimize Bellek İçi RAMDisk Gecikmesi",
+                "Cüzdan Anti-Liquidation Shield & Deleverage Planı (/v1/radar/shield/position/{chain}/{address})",
+                "12-Zincir Açık Yarış & Canlı Solver Akışı (/v1/radar/opportunities/open-race & /v1/radar/solvers/live)",
                 "Özel Webhook & Telegram/Discord Sinyal Boru Hattı"
             ]
         },
@@ -129,6 +133,8 @@ DEFAULT_CONFIG = {
                 "3.000 req/dakika Özel Çıplak Donanım (Bare-Metal) Kapasitesi",
                 "Milisaniyelik Neural-Alpha Sinyal Beslemesi (/v1/radar/neural-alpha)",
                 "Üç Zincirli Tam Kapsam: Base L2 + Arbitrum One + Ethereum L1 (Reth Yerel Düğüm)",
+                "Toplu Anti-Liquidation Shield 25 Cüzdana Kadar (POST /v1/radar/shield/batch)",
+                "Faz-2 Alt-Saniye Oracle Shock & Canlı SSE Akışı (/v1/radar/telemetry/faz2-leads & /v1/radar/stream/oracle-shocks)",
                 "MetaMorpho Kasa Stres Simülasyon Motoru (/v1/radar/curator/{vault})",
                 "SLA Garantili Sub-15ms Yanıt & %99.99 Kesintisiz Çalışma Taahhüdü",
                 "Otomatik Resmi Ticari PDF Faturalandırma & Kurumsal Destek Masası"
@@ -452,7 +458,7 @@ def generate_api_key(tier: str = "pro", email: str = "", days: int = 30, db_path
 
     now = time.time()
     expires_at = now + (days * 86400.0)
-    rate_limit = tier_info.get("rate_limit_per_min", 600)
+    rate_limit = tier_info.get("rate_limit_per_min", 1200)
 
     conn = get_db_connection(db_path)
     with conn:
@@ -645,7 +651,7 @@ def create_crypto_order(
     db_path: str = DB_PATH,
     client_ip: str = ""
 ) -> Dict[str, Any]:
-    """Assigns a unique fractional amount to the buyer (e.g. 149.37 USDT), preventing any front-running."""
+    """Assigns a unique fractional amount to the buyer (e.g. 199.37 USDT), preventing any front-running."""
     init_db(db_path)
     cfg = load_config()
     tier = (tier or "pro").strip().lower()
@@ -767,7 +773,7 @@ def verify_base_usdc_payment(
 
     target_tier = target_tier.lower()
     if target_tier not in cfg["pricing"]:
-        return {"success": False, "error": "Invalid tier requested. Choose 'pro' or 'institutional'."}
+        return {"success": False, "error": "Invalid tier requested. Choose 'developer', 'pro' or 'institutional'."}
 
     tier_info = cfg["pricing"][target_tier]
     required_usdc = float(tier_info["amount_usdc"])
@@ -927,7 +933,7 @@ def verify_base_usdc_payment(
         return {
             "success": False,
             "error": ("This payment has no wallet signature and does not match a payment order. Create an order first "
-                      "(it gives you a unique amount such as 149.37), send exactly that amount, then claim with the same e-mail. "
+                      "(it gives you a unique amount such as 199.37), send exactly that amount, then claim with the same e-mail. "
                       "Already paid without an order? Contact contact@werracle.com with the transaction hash.")
         }
 
@@ -1013,10 +1019,10 @@ def init_iyzico_card_checkout(tier: str, billing: Dict[str, Any], client_ip: str
     cfg = load_config()
     tier = (tier or "pro").lower()
     if tier not in cfg["pricing"]:
-        return {"success": False, "error": "Invalid tier. Choose 'pro' or 'institutional'."}
+        return {"success": False, "error": "Invalid tier. Choose 'developer', 'pro' or 'institutional'."}
 
     p_info = cfg["pricing"][tier]
-    net_try = float(p_info.get("amount_try_net", 5190.0 if tier == "pro" else 17390.0))
+    net_try = float(p_info.get("amount_try_net", {"developer": 4100.0, "pro": 8250.0, "institutional": 20700.0}.get(tier, 8250.0)))
     vat_try = 0.0
     total_try = net_try
     total_str = f"{total_try:.2f}"
@@ -1241,6 +1247,9 @@ def dispatch_wire_created_notifications(ref_id: str, inv_no: str, tier: str, amt
         approve_tok = admin_wire_approve_token(ref_id)
         approve_link = f"https://radar.werracle.com/v1/radar/auth/admin-approve-wire?ref={ref_id}&t={approve_tok}"
 
+        tier_cfg = load_config().get("pricing", {}).get((tier or "pro").lower(), {})
+        duration_days = int(tier_cfg.get("duration_days", 30))
+
         # 1. Admin Alert to pcworm@pcworm.net (Executive 1-Click Approval)
         admin_subject = f"[RADAR HAVALE TALEP] {buyer_name} — {amt} {curr} ({inv_no})"
         admin_text = f"""Yeni Banka Havalesi / EFT Başvurusu Alındı:
@@ -1263,7 +1272,7 @@ Proforma Fatura PDF: {pdf_url}
 
 (Bu bağlantıya tıkladığınızda:
  1. Fatura resmi olarak ÖDENDİ (INV-...) statüsüne geçer.
- 2. 30 Kasım 2026'ya kadar geçerli (29-31 Ekim Hediye) API anahtarı üretilir.
+ 2. {duration_days} gün geçerli canlı API anahtarı üretilir.
  3. Müşteriye resmi faturası ve API anahtarı otomatik mail olarak teslim edilir.)
 ======================================================================
 
@@ -1313,7 +1322,7 @@ Werracle Destek Ekibi: contact@werracle.com
 
 
 def approve_wire_transfer(ref: str, tier: Optional[str] = None, credits: int = 250000, expires_timestamp: Optional[int] = None, db_path: str = DB_PATH) -> Dict[str, Any]:
-    """Admin wire approval: stamps invoice PAID, generates API key valid until 30 Nov 2026, and emails client."""
+    """Admin wire approval: stamps invoice PAID, generates a live API key for the plan duration, and emails client."""
     init_db(db_path)
     conn = get_db_connection(db_path)
     cursor = conn.cursor()
@@ -1345,23 +1354,34 @@ def approve_wire_transfer(ref: str, tier: Optional[str] = None, credits: int = 2
 
     email = (billing.get("email") or "customer@example.com").strip()
     assigned_tier = (tier or p.get("tier") or "pro").lower()
-    
-    # 30 November 2026 23:59:59 UTC
-    default_nov_end = 1796083199
-    exp_time = expires_timestamp or default_nov_end
-    days_left = max(1, int((exp_time - time.time()) / 86400))
+    cfg = load_config()
+    tier_cfg = cfg.get("pricing", {}).get(assigned_tier, {})
+    duration_days = int(tier_cfg.get("duration_days", 30))
+
+    if expires_timestamp is not None:
+        exp_time = float(expires_timestamp)
+        days_left = max(1, int(round((exp_time - time.time()) / 86400.0)))
+    else:
+        exp_time = None
+        days_left = duration_days
 
     key_info = generate_api_key(tier=assigned_tier, email=email, days=days_left, db_path=db_path)
     api_key = key_info["api_key"]
     k_hash = key_info["key_hash"]
     k_prefix = key_info["key_prefix"]
+    if exp_time is not None:
+        key_info["expires_at"] = exp_time
+        key_info["expires_at_utc"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(exp_time))
+        if k_hash in _KEY_CACHE:
+            _KEY_CACHE[k_hash]["expires_at"] = exp_time
 
     old_inv = p.get("invoice_no") or ""
     new_inv = old_inv.replace("PRO-", "INV-") if "PRO-" in old_inv else old_inv
     now = time.time()
 
     with conn:
-        conn.execute("UPDATE api_keys SET expires_at = ? WHERE key_hash = ?", (exp_time, k_hash))
+        if exp_time is not None:
+            conn.execute("UPDATE api_keys SET expires_at = ? WHERE key_hash = ?", (exp_time, k_hash))
         conn.execute("""
             UPDATE payments
             SET verified_on_chain = 1,
@@ -1463,8 +1483,8 @@ def get_payment_for_invoice(payment_ref: str, db_path: str = DB_PATH) -> Optiona
             "status": "unpaid" if is_unpaid_sample else "paid",
             "tx_hash": "WIRE-PENDING-TEB-446" if is_unpaid_sample else "0x8f94e2c7d3b109a4e6c218d5b049f1a2c3d4e5f60718293a4b5c6d7e8f901234",
             "payer_address": "Bank Wire / EFT Transfer (Awaiting Confirmation)" if is_unpaid_sample else "0x71C...89A (Verified Institutional Subscriber)",
-            "amount_usdc": 149.00,
-            "net_amount": 149.00,
+            "amount_usdc": 199.00,
+            "net_amount": 199.00,
             "vat_amount": 0.00,
             "tier": "pro",
             "claimed_at": now,
@@ -1475,7 +1495,7 @@ def get_payment_for_invoice(payment_ref: str, db_path: str = DB_PATH) -> Optiona
             "recipient_address": "TR83 0003 2000 0000 0088 9467 48 (TEB USD)" if is_unpaid_sample else "0x4945ef6e124eea2176ddf050b33db42b0ae8c7f7 (Base Treasury)",
             "invoice_no": f"PRO-{time.strftime('%Y', time.gmtime(now))}-SAMPLE" if is_unpaid_sample else f"INV-{time.strftime('%Y', time.gmtime(now))}-SAMPLE01",
             "key_prefix": "PENDING_WIRE_VERIFICATION" if is_unpaid_sample else "wrk_pro_live_sample***",
-            "rate_limit_per_min": 600,
+            "rate_limit_per_min": 1200,
             "billing": {
                 "company": "SAMPLE — Example Customer Ltd. (illustrative)",
                 "contact_name": "Risk & Treasury Operations Desk",
@@ -1505,7 +1525,8 @@ def get_payment_for_invoice(payment_ref: str, db_path: str = DB_PATH) -> Optiona
         pass
 
     curr = p.get("currency") or "USDC"
-    amt = float(p.get("amount_usdc") or 149.0)
+    _tier_key = str(p.get("tier") or "pro").lower()
+    amt = float(p.get("amount_usdc") or {"developer": 99.0, "pro": 199.0, "institutional": 499.0}.get(_tier_key, 199.0))
     net_amt = amt
     vat_amt = 0.0
     is_paid = bool(p.get("verified_on_chain", 1))
@@ -1537,7 +1558,7 @@ def get_payment_for_invoice(payment_ref: str, db_path: str = DB_PATH) -> Optiona
         "recipient_address": recip,
         "invoice_no": p.get("invoice_no") or f"INV-2026-{hashlib.sha256(p['tx_hash'].encode()).hexdigest()[:8].upper()}",
         "key_prefix": p.get("key_prefix") or k_dict.get("key_prefix") or (f"wrk_{p['tier'][:4]}_live_***" if is_paid else "PENDING_WIRE_VERIFICATION"),
-        "rate_limit_per_min": k_dict.get("rate_limit_per_min") or (3000 if p["tier"] == "institutional" else 600),
+        "rate_limit_per_min": k_dict.get("rate_limit_per_min") or {"developer": 300, "pro": 1200, "institutional": 3000}.get(str(p.get("tier") or "pro").lower(), 1200),
         "key_hash": p.get("key_hash") or "",
         "billing": billing
     }

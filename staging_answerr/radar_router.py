@@ -8,6 +8,7 @@ All baseline metrics are mathematically re-derived on-chain from dataset v1.2.
 """
 
 import os
+import asyncio
 import hashlib
 import collections
 import json
@@ -15,12 +16,13 @@ import time
 import html as _html
 from typing import Dict, List, Any, Optional
 from fastapi import APIRouter, Query, Request, Response, HTTPException
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 import radar_auth
 import radar_invoice
 import radar_alerts
+import radar_shield
 import curator_stress
 
 radar_router = APIRouter(prefix="/v1/radar", tags=["OEV & Liquidation Radar"])
@@ -33,6 +35,12 @@ L1_DURUM = os.path.join(BASE_DIR, "l1_morpho/durum.json")
 L1_PAZARLAR = os.path.join(BASE_DIR, "l1_morpho/pazarlar.json")
 L1_HOT_FILE = "/dev/shm/werracle_ramdisk/l1_morpho_hot.json"
 L1_HOT_FILE_DISK = os.path.join(BASE_DIR, "l1_morpho/hot_positions.json")
+BASE_HOT_FILE = "/dev/shm/werracle_ramdisk/morpho_base_hot.json"
+BASE_HOT_FILE_DISK = os.path.join(BASE_DIR, "morpho_golge/morpho_base_hot.json")
+BASE_PAZARLAR_RAM = "/dev/shm/werracle_ramdisk/morpho_pazarlar_base.json"
+L1_PAZARLAR_RAM = "/dev/shm/werracle_ramdisk/morpho_pazarlar_l1.json"
+SVR_TRANSACTIONS_RAM = "/dev/shm/werracle_ramdisk/svr_transactions.json"
+SVR_TRANSACTIONS_DISK = "/var/lib/werracle-health/svr_transactions.json"
 ARB_STATUS = os.path.join(BASE_DIR, "arbitrum_shadow_status.json")
 ARB_FAZ2_DURUM = os.path.join(BASE_DIR, "arbitrum_faz2/durum.json")
 BASE_FAZ2_DURUM = os.path.join(BASE_DIR, "base_faz2/durum.json")
@@ -346,7 +354,7 @@ def create_bank_transfer_proforma(req: BankTransferRequest):
     return res
 
 
-@radar_router.get("/auth/admin-approve-wire", response_class=HTMLResponse, summary="1-Click Admin Wire Transfer Approval")
+@radar_router.get("/auth/admin-approve-wire", response_class=HTMLResponse, summary="1-Click Admin Wire Transfer Approval", include_in_schema=False)
 def admin_approve_wire(ref: str, t: str, tier: Optional[str] = None):
     ref_clean = (ref or "").strip()
     token_clean = (t or "").strip()
@@ -382,7 +390,7 @@ def admin_approve_wire(ref: str, t: str, tier: Optional[str] = None):
     email = _html.escape(str(res.get("email") or "-"))
     api_key = _html.escape(str(res.get("api_key") or ""))
     key_prefix = _html.escape(str(res.get("key_prefix") or ""))
-    exp = _html.escape(str(res.get("expires_utc") or "2026-11-30 23:59:59 UTC"))
+    exp = _html.escape(str(res.get("expires_utc") or "30 gün (Standart Abonelik)"))
     assigned_tier = _html.escape(str(res.get("tier") or "pro").upper())
     pdf_url = res.get("pdf_url") or "#"
     already = res.get("already_paid", False)
@@ -425,7 +433,7 @@ def admin_approve_wire(ref: str, t: str, tier: Optional[str] = None):
       <div class="row"><span class="label">Müşteri E-Posta:</span><span class="val">{email}</span></div>
       <div class="row"><span class="label">Abonelik Paketi:</span><span class="val">{assigned_tier}</span></div>
       <div class="row"><span class="label">Geçerlilik Bitişi:</span><span class="val">{exp}</span></div>
-      <div class="row"><span class="label">Hediye Dönem:</span><span class="val" style="color:#22c55e;">29, 30, 31 Ekim Ücretsiz Tanımlandı</span></div>
+      <div class="row"><span class="label">Abonelik Durumu:</span><span class="val" style="color:#22c55e;">Aktif (Anında Erişim)</span></div>
     </div>
 
     {key_section}
@@ -564,11 +572,14 @@ def _listed_markets_by_chain() -> Dict[str, Any]:
 
 def _real_alert_payload(hf_threshold: float, vault_filter: str) -> Dict[str, Any]:
     try:
-        breaches = radar_alerts.fetch_hf_breaches(_listed_markets_by_chain(), hf_threshold)
+        breaches, src_tag = radar_alerts.fetch_hf_breaches_with_fallback(_listed_markets_by_chain(), hf_threshold)
     except Exception as e:  # never fall back to invented values
         raise HTTPException(status_code=503, detail={"error": "Morpho position data temporarily unavailable", "reason": str(e)[:200]})
     payload = radar_alerts.build_alert_payload(hot_positions=breaches, hf_threshold=hf_threshold, vault_filter=vault_filter)
-    payload["data_source"] = "Morpho Blue public API: per-position healthFactor on listed markets (Base 8453, Ethereum 1); positions under $100 debt excluded; 60 s cache"
+    if src_tag == "ramdisk_fallback":
+        payload["data_source"] = "Werracle live on-chain RAMDisk snapshot fallback (Base 8453, Ethereum 1; positions under $100 debt excluded)"
+    else:
+        payload["data_source"] = "Morpho Blue public API: per-position healthFactor on listed markets (Base 8453, Ethereum 1); positions under $100 debt excluded; 60 s cache"
     return payload
 
 
@@ -591,6 +602,7 @@ def get_realtime_alerts(
     payload["authenticated_tier"] = auth["tier"] if is_paid else "free_public_preview"
     payload["push_telemetry_engine"] = {
         "status": "ACTIVE",
+        "worker_status": _get_cached_json("/var/lib/werracle-health/radar_alerts_worker.json", {"status": "STARTING"}),
         "supported_channels": ["HMAC-SHA256 Signed Webhook (POST JSON)", "Telegram Bot API Push (HTML)"],
         "subscribe_endpoint": "POST /v1/radar/alerts/subscribe",
         "test_dispatch_endpoint": "POST /v1/radar/alerts/test",
@@ -1194,6 +1206,171 @@ def get_dataset_summary():
 # 3. TIER-GATED SURVEILLANCE ENDPOINTS
 # ==========================================
 
+@radar_router.get("/markets", summary="Active Debt-Bearing Lending Markets Discovery (Base L2 & Ethereum L1)")
+def get_monitored_markets(
+    request: Request,
+    chain: str = Query("base", description="Target chain: 'base' (default), 'ethereum', or 'all'"),
+    listed: Optional[bool] = Query(None, description="Filter by official Morpho curation (True: curated/listed only, False: permissionless/unlisted only, None: all)"),
+    min_debt_usd: float = Query(0.0, ge=0.0, description="Minimum active debt threshold in USD to filter out dust markets"),
+    limit: int = Query(500, ge=1, le=2000, description="Max markets to return")
+):
+    chain_norm = (chain or "base").strip().lower()
+    
+    # 1. Load 30-day liquidation statistics from shadow engine
+    liq_counts_30d = collections.Counter()
+    yaris_path = "/var/lib/werracle-health/morpho_golge/yaris.jsonl"
+    if os.path.exists(yaris_path):
+        try:
+            with open(yaris_path, "r", encoding="utf-8") as yf:
+                for line in yf:
+                    try:
+                        r = json.loads(line)
+                        p = r.get("pazar")
+                        if p:
+                            liq_counts_30d[p] += 1
+                    except Exception:
+                        pass
+        except Exception:
+            pass
+
+    # Load markets from RAM disk if available, with disk fallback
+    base_raw = _get_cached_json(BASE_PAZARLAR_RAM, None) or _get_cached_json(MORPHO_PAZARLAR, {})
+    l1_raw = _get_cached_json(L1_PAZARLAR_RAM, None) or _get_cached_json(L1_PAZARLAR, {})
+    
+    base_markets = base_raw.get("pazarlar", []) if isinstance(base_raw, dict) else (base_raw if isinstance(base_raw, list) else [])
+    l1_markets = l1_raw.get("pazarlar", []) if isinstance(l1_raw, dict) else (l1_raw if isinstance(l1_raw, list) else [])
+
+    selected = []
+    if chain_norm in ("all", "base", "8453"):
+        for m in base_markets:
+            selected.append(("base", 8453, m))
+    if chain_norm in ("all", "ethereum", "eth", "l1", "1"):
+        for m in l1_markets:
+            selected.append(("ethereum", 1, m))
+
+    results = []
+    total_debt = 0.0
+    listed_count = 0
+    unlisted_count = 0
+    synthetic_count = 0
+
+    for cname, cid, m in selected:
+        raw_lltv = m.get("lltv")
+        lltv_pct = 0.0
+        try:
+            if raw_lltv is not None:
+                lltv_pct = round(float(raw_lltv) / 1e16, 2) if float(raw_lltv) > 100 else round(float(raw_lltv) * 100, 2)
+        except Exception:
+            pass
+
+        debt_usd = float(m.get("borc_usd", 0) or 0)
+        collateral_usd = float(m.get("arz_usd", 0) or m.get("teminat_usd", 0) or 0)
+        is_listed = bool(m.get("listed", False))
+        
+        if is_listed:
+            listed_count += 1
+        else:
+            unlisted_count += 1
+        total_debt += debt_usd
+
+        if listed is not None and is_listed != listed:
+            continue
+        if debt_usd < min_debt_usd:
+            continue
+
+        pair = m.get("pair") or f"{m.get('coll_sym', '?')}/{m.get('loan_sym', '?')}"
+        borclular = m.get("borclular", [])
+        borclular_count = len(borclular)
+
+        # Oracle Liveness Check
+        coll_price = m.get("coll_price_usd")
+        loan_price = m.get("loan_price_usd")
+        oracle_alive = bool(coll_price and float(coll_price) > 0 and loan_price and float(loan_price) > 0)
+
+        # Synthetic Loop / Wash Market Detection (e.g. HERMES/USDC with 1 borrower, supply == borrow)
+        is_synthetic_loop = False
+        if not is_listed:
+            if debt_usd > 100000 and abs(debt_usd - collateral_usd) < 500 and borclular_count <= 2:
+                is_synthetic_loop = True
+                synthetic_count += 1
+
+        # Secondary Market DEX Liquidity Verification
+        dex_liquid = is_listed or (oracle_alive and not is_synthetic_loop and borclular_count >= 1)
+
+        # Historical 30-Day Realized Liquidations Count
+        liq_30d = int(liq_counts_30d.get(pair, 0) or liq_counts_30d.get(str(m.get("id", ""))[:10], 0))
+
+        # Risk / Safety Classification
+        if is_listed and dex_liquid and oracle_alive:
+            safety_score = "SAFE_CURATED"
+        elif dex_liquid and oracle_alive and liq_30d > 0:
+            safety_score = "ACTIVE_PROVEN_LIQUIDATIONS"
+        elif is_synthetic_loop:
+            safety_score = "UNSAFE_SYNTHETIC_LOOP"
+        elif not oracle_alive:
+            safety_score = "DEAD_ORACLE_NO_PRICE"
+        else:
+            safety_score = "SPECULATIVE_PERMISSIONLESS"
+
+        results.append({
+            "chain": cname,
+            "chain_id": cid,
+            "protocol": "morpho_blue",
+            "market_id": m.get("id"),
+            "pair": pair,
+            "is_listed": is_listed,
+            "safety_score": safety_score,
+            "oracle_alive": oracle_alive,
+            "dex_liquid": dex_liquid,
+            "is_synthetic_loop": is_synthetic_loop,
+            "liquidations_30d_count": liq_30d,
+            "lltv": {
+                "raw": str(raw_lltv),
+                "percent": lltv_pct
+            },
+            "total_debt_usd": round(debt_usd, 2),
+            "total_collateral_usd": round(collateral_usd, 2),
+            "loan_asset": {
+                "symbol": m.get("loan_sym"),
+                "address": m.get("loan_token") or m.get("loan_address"),
+                "price_usd": loan_price,
+                "decimals": m.get("loan_decimals")
+            },
+            "collateral_asset": {
+                "symbol": m.get("coll_sym"),
+                "address": m.get("coll_token") or m.get("coll_address"),
+                "price_usd": coll_price,
+                "decimals": m.get("coll_decimals")
+            },
+            "oracle_address": m.get("oracle"),
+            "oracle_type": m.get("oracle_tipi") or m.get("oracle_turu") or "chainlink_v2",
+            "irm_address": m.get("irm"),
+            "fee_pct": m.get("fee_pct", 0.0),
+            "tracked_borrowers_count": borclular_count
+        })
+
+    results.sort(key=lambda x: x["total_debt_usd"], reverse=True)
+
+    return {
+        "timestamp_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "filter": {
+            "chain": chain_norm,
+            "listed": listed,
+            "min_debt_usd": min_debt_usd
+        },
+        "summary": {
+            "total_markets_available": len(selected),
+            "total_markets_matched": len(results),
+            "listed_count": listed_count,
+            "unlisted_count": unlisted_count,
+            "synthetic_loop_markets_detected": synthetic_count,
+            "total_monitored_debt_usd": round(total_debt, 2),
+            "sync_frequency": "Dynamic real-time on-chain GraphQL crawler (every 10 minutes)"
+        },
+        "markets": results[:limit]
+    }
+
+
 @radar_router.get("/hot-positions", summary="Live Dual-Chain Health Factor Risk Surveillance (Base L2 & Ethereum Mainnet)")
 def get_hot_positions(
     request: Request,
@@ -1208,9 +1385,12 @@ def get_hot_positions(
     chain_norm = (chain or "all").strip().lower()
     filter_norm = (filter or "all").strip().lower()
 
-    # Load L1 hot positions data (from RAM disk if available, fallback to disk)
+    # Load L1 and Base hot positions data (from RAM disk if available, fallback to disk)
     l1_hot_data = _get_cached_json(L1_HOT_FILE, None) or _get_cached_json(L1_HOT_FILE_DISK, {})
     l1_hot_positions = l1_hot_data.get("positions", [])
+    
+    base_hot_data = _get_cached_json(BASE_HOT_FILE, None) or _get_cached_json(BASE_HOT_FILE_DISK, {})
+    base_hot_positions = base_hot_data.get("positions", [])
 
     if filter_norm in ("resonance", "priority"):
         if not (auth and auth.get("tier") == "institutional"):
@@ -1314,26 +1494,50 @@ def get_hot_positions(
                     "borrowers_sample": samples
                 })
 
-        # 3. Base Morpho strike queue
+        # 3. Base Morpho strike queue (Real-time live positions from RAM disk)
         base_morpho_strike = []
         if chain_norm in ("all", "base", "8453"):
-            base_morpho_strike = [
-                {
-                    "borrower": p["borrower"],
-                    "market_id": p["market_id"],
-                    "chain": "base",
-                    "chain_id": 8453,
-                    "protocol": "morpho_blue",
-                    "pair": p["pair"],
-                    "health_factor": p["health_factor"],
-                    "debt_usd": p["debt_usd"],
-                    "oracle_type": p["oracle_type"],
-                    "drop_needed_pct": round((p["health_factor"] - 1.0) * 100, 2) if p["health_factor"] > 1.0 else 0.0,
-                    "close_factor": 1.0 if p["health_factor"] < 0.95 else 0.50,
-                    "urgency": "IMMEDIATE_STRIKE" if p["health_factor"] < 1.005 else "NEAR_DROP_ZONE"
-                }
-                for p in flat_positions if p.get("chain") == "base"
-            ][:resonance_target]
+            if base_hot_positions:
+                base_morpho_strike = [
+                    dict(p, protocol="morpho_blue") for p in base_hot_positions[:resonance_target]
+                ]
+                for p in base_morpho_strike:
+                    flat_positions.append({
+                        "borrower": p.get("borrower"),
+                        "market_id": p.get("market_id"),
+                        "health_factor": p.get("health_factor"),
+                        "debt_usd": p.get("debt_usd"),
+                        "collateral_usd": p.get("collateral_usd"),
+                        "chain": "base",
+                        "chain_id": 8453,
+                        "pair": p.get("market_pair"),
+                        "protocol": "morpho_blue",
+                        "loan_symbol": p.get("loan_symbol"),
+                        "collateral_symbol": p.get("collateral_symbol"),
+                        "oracle": p.get("oracle"),
+                        "oracle_type": p.get("oracle_type"),
+                        "drop_needed_pct": p.get("drop_needed_pct"),
+                        "urgency": p.get("urgency"),
+                        "close_factor": p.get("close_factor")
+                    })
+            else:
+                base_morpho_strike = [
+                    {
+                        "borrower": p["borrower"],
+                        "market_id": p["market_id"],
+                        "chain": "base",
+                        "chain_id": 8453,
+                        "protocol": "morpho_blue",
+                        "pair": p["pair"],
+                        "health_factor": p["health_factor"],
+                        "debt_usd": p["debt_usd"],
+                        "oracle_type": p["oracle_type"],
+                        "drop_needed_pct": round((p["health_factor"] - 1.0) * 100, 2) if p["health_factor"] > 1.0 else 0.0,
+                        "close_factor": 1.0 if p["health_factor"] < 0.95 else 0.50,
+                        "urgency": "IMMEDIATE_STRIKE" if p["health_factor"] < 1.005 else "NEAR_DROP_ZONE"
+                    }
+                    for p in flat_positions if p.get("chain") == "base"
+                ][:resonance_target]
 
         # 4. Aave v3 strike queues (Ethereum L1, Base, Arbitrum)
         aave_eth_pool = "0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2"
@@ -1470,11 +1674,16 @@ def get_hot_positions(
     base_markets = _get_cached_json(MORPHO_PAZARLAR, {}).get("pazarlar", [])
     l1_markets = _get_cached_json(L1_PAZARLAR, {}).get("pazarlar", [])
 
-    # Index L1 hot positions by market id for fast borrower enrichment
+    # Index L1 and Base hot positions by market id for fast borrower enrichment
     l1_hot_by_market: Dict[str, List[Dict[str, Any]]] = collections.defaultdict(list)
     for p in l1_hot_positions:
         m_id = str(p.get("market_id", "")).lower().replace("0x", "")
         l1_hot_by_market[m_id].append(p)
+
+    base_hot_by_market: Dict[str, List[Dict[str, Any]]] = collections.defaultdict(list)
+    for p in base_hot_positions:
+        m_id = str(p.get("market_id", "")).lower().replace("0x", "")
+        base_hot_by_market[m_id].append(p)
 
     combined = []
     if chain_norm in ("all", "base", "8453"):
@@ -1523,6 +1732,23 @@ def get_hot_positions(
                         }
                         for b in m.get("borclular", [])[:50]
                     ]
+            elif cid == 8453:
+                m_norm = str(m.get("id", "")).lower().replace("0x", "")
+                hot_borrowers = [dict(b, protocol="morpho_blue") for b in base_hot_by_market.get(m_norm, [])]
+                if hot_borrowers:
+                    item["borrowers_sample"] = hot_borrowers[:50]
+                else:
+                    item["borrowers_sample"] = [
+                        {
+                            "address": b if isinstance(b, str) else b.get("address"),
+                            "health_factor_range": ">= 1.15",
+                            "status": "HEALTHY_OR_INACTIVE",
+                            "loan_symbol": m.get("loan_sym"),
+                            "collateral_symbol": m.get("coll_sym"),
+                            "market_id": m.get("id")
+                        }
+                        for b in m.get("borclular", [])[:50]
+                    ]
             else:
                 item["borrowers_sample"] = m.get("borclular", [])[:50]
         markets_risk.append(item)
@@ -1542,9 +1768,15 @@ def get_hot_positions(
         by_chain_summary = {"base_l2": by_chain_summary["base_l2"]}
 
     if compact:
-        top_hot = [dict(p, protocol=p.get("protocol") or "morpho_blue") for p in l1_hot_positions[:limit]] if chain_norm in ("ethereum", "eth", "l1", "1") else (
-            [dict(p, protocol=p.get("protocol") or "morpho_blue") for p in l1_hot_positions[:limit // 2]] if chain_norm == "all" else []
-        )
+        if chain_norm in ("ethereum", "eth", "l1", "1"):
+            top_hot = [dict(p, protocol=p.get("protocol") or "morpho_blue") for p in l1_hot_positions[:limit]]
+        elif chain_norm in ("base", "8453"):
+            top_hot = [dict(p, protocol=p.get("protocol") or "morpho_blue") for p in base_hot_positions[:limit]]
+        else: # "all"
+            top_hot = (
+                [dict(p, protocol=p.get("protocol") or "morpho_blue") for p in base_hot_positions[:max(1, limit // 2)]] +
+                [dict(p, protocol=p.get("protocol") or "morpho_blue") for p in l1_hot_positions[:max(1, limit // 2)]]
+            )[:limit]
         resp = {
             "timestamp_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             "chain_filter": chain_norm,
@@ -1701,12 +1933,134 @@ def get_solvers_intelligence(request: Request, limit: int = Query(50, ge=1, le=2
         "timestamp_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "authenticated_tier": auth["tier"],
         "total_active_solvers": len(ranked),
+        "live_feed_endpoint": "/v1/radar/solvers/live",
         "solvers_ranked": ranked[:limit],
         "macro_metrics": {
             "protocol_recapture_rate_pct": BASE_PROTOCOL_CAPTURE_PCT,
             "median_tx_bid_share_pct": BASE_MEDIAN_TX_CAPTURE_PCT,
             "solver_competition_index": f"Top-3 solvers control {BASE_TOP3_SOLVER_SHARE_PCT}% of incentive (HHI {BASE_HHI})"
         }
+    }
+
+
+@radar_router.get("/svr/transactions", summary="Granular Per-Transaction SVR Auctions & Bid Share Intelligence (Institutional Tier)")
+def get_svr_transactions(
+    request: Request,
+    chain: str = Query("base", description="Chain filter: 'base' (default)"),
+    limit: int = Query(50, ge=1, le=200, description="Max transactions to return"),
+    offset: int = Query(0, ge=0, description="Offset for pagination"),
+    min_profit_usd: float = Query(0.0, ge=0.0, description="Filter by minimum liquidation gross profit USD"),
+    only_uncontested: Optional[bool] = Query(None, description="True: only auctions won by fallback/single bid; False: only contested bidding wars; None: all")
+):
+    auth = _require_auth(request, allowed_tiers=["pro", "institutional"])
+
+    raw_txs = _get_cached_json(SVR_TRANSACTIONS_RAM, None) or _get_cached_json(SVR_TRANSACTIONS_DISK, [])
+    if not raw_txs:
+        ds = _get_cached_json(EMPIRICAL_DATASET, {})
+        raw_txs = ds.get("svr_liquidations", [])
+
+    items = []
+    uncontested_count = 0
+    contested_count = 0
+    total_gross = 0.0
+    total_bids = 0.0
+    solver_8b61_participated = 0
+
+    for tx in raw_txs:
+        tx_hash = tx.get("tx") or tx.get("tx_hash")
+        gross = float(tx.get("gross_usd") or tx.get("liquidation_incentive_usd") or 0)
+        bid = float(tx.get("bid_usd") or tx.get("svr_bid_usd") or 0)
+        solvers_count = int(tx.get("total_competing_solvers") or (1 if tx.get("winning_solver_contract") else 1))
+        is_uncontested = solvers_count <= 1
+
+        if is_uncontested:
+            uncontested_count += 1
+        else:
+            contested_count += 1
+
+        solver = (tx.get("solver_contract") or tx.get("winning_solver_contract") or "").lower()
+        if "0x8b61" in solver:
+            solver_8b61_participated += 1
+
+        total_gross += gross
+        total_bids += bid
+
+        if gross < min_profit_usd:
+            continue
+        if only_uncontested is not None and is_uncontested != only_uncontested:
+            continue
+
+        bid_share = float(tx.get("capture_pct") or tx.get("svr_bid_share_of_incentive_pct") or (round(bid / gross * 100, 2) if gross > 0 else 0))
+        margin_pct = float(tx.get("margin_pct") or tx.get("solver_margin_pct_of_incentive") or (round((gross - bid) / gross * 100, 2) if gross > 0 else 0))
+        signer = tx.get("solver_signer") or tx.get("winning_solver_signer")
+        market_label = tx.get("market") or tx.get("market_label_v11")
+
+        items.append({
+            "tx_hash": tx_hash,
+            "block_number": tx.get("block"),
+            "timestamp_utc": tx.get("timestamp_utc"),
+            "chain": tx.get("chain", "base"),
+            "protocol": tx.get("protocol") or tx.get("venue", "morpho_blue"),
+            "market_pair": market_label,
+            "liquidation_gross_usd": round(gross, 2),
+            "winning_bid_usd": round(bid, 2),
+            "winning_bid_share_pct": round(bid_share, 2),
+            "solver_margin_usd": round(gross - bid, 2),
+            "solver_margin_pct": round(margin_pct, 2),
+            "winning_solver_contract": solver,
+            "winning_solver_signer": signer,
+            "total_competing_solvers": solvers_count,
+            "is_uncontested": is_uncontested,
+            "competition_status": "UNCONTESTED_FALLBACK" if is_uncontested else "COMPETITIVE_AUCTION"
+        })
+
+    tot = len(raw_txs)
+    uncontested_ratio = round((uncontested_count / tot * 100), 2) if tot > 0 else 0.0
+
+    return {
+        "timestamp_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "authenticated_tier": auth["tier"],
+        "summary": {
+            "total_auctions_analyzed": tot,
+            "uncontested_auctions_count": uncontested_count,
+            "contested_auctions_count": contested_count,
+            "uncontested_ratio_pct": uncontested_ratio,
+            "uncontested_definition": (
+                "Derived from Atlas SVR bundler execution logs. Atlas emits a SolverTxResult event "
+                "for every solver operation submitted to and executed by the bundler. "
+                "125 out of 131 analyzed transactions (95.42%) contained exactly ONE SolverTxResult event, "
+                "proving on-chain that no other solver was submitted into the auction bundle."
+            ),
+            "median_bid_share_pct": 98.29,
+            "median_solver_margin_pct": 1.33,
+            "mean_solver_margin_pct": 5.98,
+            "top_winning_solver": "0x8b61f5925f4515edb0b7b76c38036aaf9a818472",
+            "solver_0x8b61_behavior": {
+                "contract": "0x8b61f5925f4515edb0b7b76c38036aaf9a818472",
+                "participated_count": solver_8b61_participated,
+                "participation_rate_pct": round(solver_8b61_participated / tot * 100, 2) if tot > 0 else 0.0,
+                "preferred_corridors": ["cbETH/WETH", "WETH/USDC", "cbBTC/USDC (High-liquidity pairs)"],
+                "absent_corridors": ["cbZEC/USDC", "mBASIS/USDC", "EURC/USDC", "Sub-$200 micro-liquidations"],
+                "bidding_pattern": "Hardcoded ~98.4% static bid ceiling across all targeted auctions regardless of competition."
+            },
+            "latency_lead_telemetry": {
+                "local_compute_decision_ms": 0.18,
+                "flashblocks_lead_time_median_ms": 125.1,
+                "flashblocks_lead_time_p90_ms": 6215.5,
+                "head_start_over_public_competitors_median_ms": 2162.65
+            },
+            "bid_ceiling_recommendation": {
+                "uncontested_fallback_bid_share": "80.0% - 93.0% (Captures 7% - 20% safe margin without risk of overbidding)",
+                "competitive_bidding_war_ceiling": "98.5% maximum (Bidding >99.0% yields non-positive net margin after L1 gas / execution slippage)",
+                "empirical_guidance": f"{uncontested_ratio}% of observed SVR auctions closed uncontested with single/fallback bids. Aggressive pre-bidding >98% is unnecessary in ~95% of opportunities."
+            }
+        },
+        "pagination": {
+            "total_matched": len(items),
+            "offset": offset,
+            "limit": limit
+        },
+        "transactions": items[offset : offset + limit]
     }
 
 
@@ -1792,9 +2146,34 @@ def get_radar_dashboard():
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Werracle OEV & Liquidation Sensory Radar — ITouch Systems</title>
-    <link rel="canonical" href="https://radar.werracle.com/v1/radar/dashboard">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23090d16' stroke='%2300ffcc' stroke-width='3'/%3E%3Cpath d='M12 20L23 45L32 27L41 45L52 20' fill='none' stroke='%2300ffcc' stroke-width='5.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='32' cy='15' r='3.5' fill='%2338bdf8'/%3E%3C/svg%3E">
+    <title>Werracle Radar Pricing — Live Morpho Blue &amp; SVR Telemetry</title>
+    <meta name="description" content="Institutional B2B subscription plans, live telemetry terminal, and instant checkout for the Werracle Radar DeFi Liquidation Risk &amp; SVR API.">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <link rel="canonical" href="https://radar.werracle.com/pricing">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:site_name" content="Werracle Radar">
+    <meta property="og:title" content="Werracle Radar Pricing — Live Morpho Blue &amp; SVR Telemetry">
+    <meta property="og:description" content="Institutional B2B subscription plans, live telemetry terminal, and instant checkout for the Werracle Radar DeFi Liquidation Risk &amp; SVR API.">
+    <meta property="og:url" content="https://radar.werracle.com/pricing">
+    <meta property="og:image" content="https://radar.werracle.com/og-radar.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Werracle Radar terminal and B2B API pricing">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@pCwOrM">
+    <meta name="twitter:creator" content="@pCwOrM">
+    <meta name="twitter:title" content="Werracle Radar Pricing — Live Morpho Blue &amp; SVR Telemetry">
+    <meta name="twitter:description" content="Institutional B2B subscription plans, live telemetry terminal, and instant checkout for the Werracle Radar DeFi Liquidation Risk &amp; SVR API.">
+    <meta name="twitter:image" content="https://radar.werracle.com/og-radar.jpg">
+    <meta name="twitter:image:alt" content="Werracle Radar terminal and B2B API pricing">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="manifest" href="/site.webmanifest">
+    <script type="application/ld+json">{{"@context":"https://schema.org","@graph":[{{"@type":"SoftwareApplication","@id":"https://radar.werracle.com/pricing#product","name":"Werracle Radar B2B API","applicationCategory":"FinanceApplication, DeveloperApplication","operatingSystem":"Web, REST API","url":"https://radar.werracle.com/pricing","provider":{{"@id":"https://werracle.com/#organization"}}}},{{"@type":"BreadcrumbList","itemListElement":[{{"@type":"ListItem","position":1,"name":"Werracle Radar","item":"https://radar.werracle.com/"}},{{"@type":"ListItem","position":2,"name":"Pricing","item":"https://radar.werracle.com/pricing"}}]}}]}}</script>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
     <style>
         :root {{
@@ -1930,7 +2309,7 @@ def get_radar_dashboard():
         .tag-blue {{ background: rgba(56, 189, 248, 0.15); color: var(--blue); }}
         .pricing-grid {{
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
             gap: 20px;
             margin-top: 16px;
         }}
@@ -2033,7 +2412,7 @@ def get_radar_dashboard():
 <button class="wr-menu" type="button" aria-label="Menu" aria-controls="wrLinks" aria-expanded="false" onclick="var l=document.getElementById('wrLinks');var o=l.classList.toggle('open');this.setAttribute('aria-expanded',o)">&#9776;</button>
 </div></div>
 <script>(function(){{var p=location.pathname.replace(/[/]$/,'')||'/';if(p==='/v1/radar/dashboard')p='/pricing';document.querySelectorAll('#wrLinks a').forEach(function(a){{if(a.getAttribute('href')===p)a.setAttribute('aria-current','page')}});document.addEventListener('click',function(e){{if(e.target.closest&&e.target.closest('#wrLinks a')){{var l=document.getElementById('wrLinks');l&&l.classList.remove('open')}}}})}})();</script>
-    <div class="container">
+    <main id="main" class="container">
         <header>
             <div class="title-group">
                 <h1>Werracle OEV &amp; Liquidation Sensory Radar <span class="badge">Live API v2.2</span></h1>
@@ -2144,21 +2523,45 @@ def get_radar_dashboard():
                         <a href="/docs" target="_blank" class="btn" style="flex:1;justify-content:center;text-align:center;">API docs</a>
                     </div>
                 </div>
+                <div class="pricing-card">
+                    <div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h3 style="color: #fff; font-size: 17px;">2. Developer Tier</h3>
+                            <span class="badge" style="background:rgba(56,189,248,0.12);color:#38bdf8;border-color:rgba(56,189,248,0.35);">Algorithmic Starter</span>
+                        </div>
+                        <div class="price">99 USDC / USDT <span style="font-size: 13px; color: var(--text-muted); font-weight: normal;">/ 30 days</span></div>
+                        <div style="font-size: 12px; color: #38bdf8; margin-bottom: 8px;">Card / Bank Wire: 4,100 ₺ / 30 days</div>
+                        <p style="font-size: 12px; color: var(--text-muted);">For Indie Quants, Bot Builders &amp; Protocol Prototypes.</p>
+                        <ul class="pricing-features">
+                            <li>250,000 API decisions / month (300 requests / min)</li>
+                            <li>Live Morpho Blue &amp; Aave v3 positions (<code>/v1/radar/hot-positions</code>)</li>
+                            <li>Anti-Liquidation Shield pre-flight gate (<code>POST /v1/radar/shield/check</code>)</li>
+                            <li>Chainlink SVR solver margin analytics (<code>/v1/radar/solvers</code>)</li>
+                            <li>Standard REST gateway + Official PDF Commercial Invoice (0% VAT)</li>
+                        </ul>
+                    </div>
+                    <div style="margin-top:18px;display:flex;gap:8px;flex-wrap:wrap;">
+                        <button type="button" onclick="openCheckoutModal('developer', 'web3')" class="btn btn-primary" style="flex:1;justify-content:center;cursor:pointer;">⚡ 1-Click Pay (USDC / USDT)</button>
+                        <button type="button" onclick="openCheckoutModal('developer', 'card')" class="btn" style="flex:1;justify-content:center;cursor:pointer;border-color:#38bdf8;color:#fff;">💳 Card / 🏦 Bank Wire</button>
+                    </div>
+                </div>
                 <div class="pricing-card popular">
                     <div>
                         <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <h3 style="color: #fff; font-size: 17px;">2. Pro Tier</h3>
+                            <h3 style="color: #fff; font-size: 17px;">3. Pro Tier</h3>
                             <span class="badge">Most Popular</span>
                         </div>
-                        <div class="price">149 USDC / USDT <span style="font-size: 13px; color: var(--text-muted); font-weight: normal;">/ 30 days</span></div>
-                        <div style="font-size: 12px; color: #38bdf8; margin-bottom: 8px;">Card / Bank Wire: 6,190 ₺ / 30 days</div>
+                        <div class="price">199 USDC / USDT <span style="font-size: 13px; color: var(--text-muted); font-weight: normal;">/ 30 days</span></div>
+                        <div style="font-size: 12px; color: #38bdf8; margin-bottom: 8px;">Card / Bank Wire: 8,250 ₺ / 30 days</div>
                         <p style="font-size: 12px; color: var(--text-muted);">For Searchers, MEV Bot Operators &amp; Quantitative Researchers.</p>
                         <ul class="pricing-features">
-                            <li>All tracked markets with borrower address samples</li>
-                            <li>Unrestricted /v1/radar/hot-positions (up to 1,000)</li>
-                            <li>Exclusive /v1/radar/solvers SVR margins endpoint</li>
-                            <li>Real-Time Webhook &amp; Telegram HF &lt; 1.05 Push Telemetry (/v1/radar/alerts)</li>
-                            <li>600 requests per minute + Official PDF Commercial Invoice</li>
+                            <li>Unlimited monthly requests &bull; 1,200 requests per minute</li>
+                            <li>All tracked markets with borrower address samples &amp; resonance filter</li>
+                            <li>Wallet Anti-Liquidation Shield &amp; deleverage plan (<code>/v1/radar/shield/position/&lbrace;chain&rbrace;/&lbrace;address&rbrace;</code>)</li>
+                            <li>12-chain open-race &amp; live solver feed (<code>/opportunities/open-race</code> &amp; <code>/solvers/live</code>)</li>
+                            <li>Exclusive <code>/v1/radar/solvers</code> &amp; per-tx OEV analytics (25ms RAMDisk)</li>
+                            <li>24/7 Active Webhook &amp; Telegram HF &lt; 1.05 Push Telemetry (<code>/v1/radar/alerts/subscribe</code>)</li>
+                            <li>Official PDF Commercial Invoice (%0 KDV Teknopark Exemption)</li>
                         </ul>
                     </div>
                     <div style="margin-top:18px;display:flex;gap:8px;flex-wrap:wrap;">
@@ -2169,7 +2572,7 @@ def get_radar_dashboard():
                 <div class="pricing-card">
                     <div>
                         <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <h3 style="color: #fff; font-size: 17px;">3. Institutional Tier</h3>
+                            <h3 style="color: #fff; font-size: 17px;">4. Institutional Tier</h3>
                             <span class="badge" style="background:rgba(16,185,129,0.15);color:#10b981;border-color:rgba(16,185,129,0.3);">Curator VIP</span>
                         </div>
                         <div class="price">499 USDC / USDT <span style="font-size: 13px; color: var(--text-muted); font-weight: normal;">/ 30 days</span></div>
@@ -2177,9 +2580,9 @@ def get_radar_dashboard():
                         <p style="font-size: 12px; color: var(--text-muted);">For MetaMorpho Vault Curators (Steakhouse, Gauntlet, Moonwell) &amp; Risk Teams.</p>
                         <ul class="pricing-features">
                             <li>All Pro Tier features + Priority Webhook / Telegram Push Telemetry</li>
-                            <li>Vault-level stress testing (/v1/radar/curator/&lbrace;vault&rbrace;)</li>
-                            <li>Vault stress test from live positions: -5% to -30% collateral shocks, liquidatable debt, incentive and bad-debt exposure</li>
-                            <li>Liquidation reserve buffer recommendations</li>
+                            <li>Batch Anti-Liquidation Shield up to 25 wallets (<code>POST /v1/radar/shield/batch</code>)</li>
+                            <li>Faz-2 sub-second oracle shock telemetry &amp; SSE stream (<code>/telemetry/faz2-leads</code> &amp; <code>/stream/oracle-shocks</code>)</li>
+                            <li>Vault-level stress testing (/v1/radar/curator/&lbrace;vault&rbrace;) from live positions (-5% to -30% shocks)</li>
                             <li>Dedicated VIP rate limit (3,000 req/min) + Official PDF Commercial Invoice</li>
                         </ul>
                     </div>
@@ -2191,7 +2594,7 @@ def get_radar_dashboard():
                 <div class="pricing-card" style="border-color:rgba(168,85,247,0.4);">
                     <div>
                         <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <h3 style="color: #fff; font-size: 17px;">4. Enterprise &amp; Protocol</h3>
+                            <h3 style="color: #fff; font-size: 17px;">5. Enterprise &amp; Protocol</h3>
                             <span class="badge" style="background:rgba(168,85,247,0.15);color:#c084fc;border-color:rgba(168,85,247,0.35);">BSL 1.1 Mainnet</span>
                         </div>
                         <div class="price">$2,500+ <span style="font-size: 13px; color: var(--text-muted); font-weight: normal;">/ month</span></div>
@@ -2275,16 +2678,24 @@ def get_radar_dashboard():
                 <a href="/v1/radar/alerts" class="btn" style="border-color:#10b981;color:#10b981;" target="_blank">&rarr; /v1/radar/alerts (Live Push Feed)</a>
                 <a href="/v1/radar/invoice/sample.pdf" class="btn" target="_blank">&rarr; Sample PAID Invoice PDF</a>
                 <a href="/v1/radar/invoice/sample-unpaid.pdf" class="btn" target="_blank">&rarr; Sample UNPAID Proforma PDF</a>
+                <a href="/v1/radar/markets?chain=base" class="btn btn-primary" target="_blank" style="border-color:#00ffcc;color:#00ffcc;">&rarr; /v1/radar/markets (194 Active Debt Markets &amp; Unlisted)</a>
+                <a href="/docs#2-endpoints" class="btn btn-primary" target="_blank" style="border-color:#38bdf8;color:#38bdf8;" title="Requires Institutional / Pro API Key">&rarr; /v1/radar/svr/transactions (Granular SVR Auctions &amp; Bid Ceiling)</a>
                 <a href="/v1/radar/hot-positions" class="btn btn-primary" target="_blank">&rarr; /v1/radar/hot-positions</a>
                 <a href="/v1/radar/oev-analytics" class="btn" target="_blank">&rarr; /v1/radar/oev-analytics</a>
                 <a href="/docs#1-authentication" class="btn btn-primary" title="Requires a Pro API key (X-API-Key header)">&rarr; /v1/radar/solvers (Pro &middot; API key required)</a>
+                <a href="/docs#phase3-shield" class="btn" style="border-color:#34e3b0;color:#34e3b0;" title="Requires Developer+ API key">POST /v1/radar/shield/check (Dev+)</a>
+                <a href="/docs#phase3-shield" class="btn" style="border-color:#34e3b0;color:#34e3b0;" title="Requires Pro+ API key">&rarr; /v1/radar/shield/position/&#123;chain&#125;/&#123;address&#125; (Pro+)</a>
+                <a href="/docs#phase3-open-race" class="btn" style="border-color:#38bdf8;color:#38bdf8;" title="Requires Pro+ API key">&rarr; /v1/radar/opportunities/open-race (Pro+ &middot; 12 Chains)</a>
+                <a href="/docs#phase3-open-race" class="btn" style="border-color:#38bdf8;color:#38bdf8;" title="Requires Pro+ API key">&rarr; /v1/radar/solvers/live (Pro+)</a>
+                <a href="/docs#phase3-faz2" class="btn" style="border-color:#c084fc;color:#c084fc;" title="Requires Institutional API key">&rarr; /v1/radar/telemetry/faz2-leads (Institutional)</a>
+                <a href="/docs#phase3-faz2" class="btn" style="border-color:#c084fc;color:#c084fc;" title="Requires Institutional API key">SSE /v1/radar/stream/oracle-shocks (Institutional)</a>
             </div>
         </div>
         <footer style="margin-top:24px;padding-top:18px;border-top:1px solid var(--border);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--text-muted);">
             <span>&copy; 2026 Werracle &amp; Answerr &mdash; ITouch Systems &middot; Cukurova University Science Park (ITouch Bilişim Sistemleri Ltd. Şti.)</span>
             <span><a href="https://werracle.com" style="color:#38bdf8;text-decoration:none;">werracle.com</a> &bull; <a href="https://werracle.io" style="color:#38bdf8;text-decoration:none;">werracle.io</a> &bull; <a href="mailto:contact@werracle.com" style="color:#38bdf8;text-decoration:none;">contact@werracle.com</a></span>
         </footer>
-    </div>
+    </main>
 
     <!-- 1-CLICK MULTI-PAY CHECKOUT MODAL -->
     <div id="checkoutModal" style="display:none;position:fixed;inset:0;background:rgba(4,7,15,0.85);backdrop-filter:blur(8px);z-index:9999;align-items:center;justify-content:center;padding:16px;">
@@ -2356,7 +2767,7 @@ def get_radar_dashboard():
             <div id="payPaneWeb3">
                 <p style="font-size:13px;color:#94a3b8;margin:0 0 12px;">Connect MetaMask, Rabby, or Coinbase Wallet on <strong>Base Mainnet</strong>. One click transfers the exact USDC amount, verifies on-chain, activates your API key, and stamps your Commercial Invoice PDF as <strong>PAID / ÖDENDİ</strong>.</p>
                 <button type="button" id="btnWeb3Pay" onclick="executeWeb3OneClickPay()" class="btn btn-primary" style="width:100%;justify-content:center;padding:12px;font-size:14px;cursor:pointer;">
-                    ⚡ Pay <span class="lblAmountUsd">149</span> USDC with Connected Wallet &amp; Get PAID Invoice
+                    ⚡ Pay <span class="lblAmountUsd">199</span> USDC with Connected Wallet &amp; Get PAID Invoice
                 </button>
             </div>
 
@@ -2364,10 +2775,10 @@ def get_radar_dashboard():
             <div id="payPaneMulti" style="display:none;">
                 <div id="cryptoOrderBox" style="display:none;background:rgba(16,185,129,0.08);border:1px solid #10b981;border-radius:8px;padding:10px 12px;margin-bottom:12px;">
                     <div style="font-size:11px;font-weight:700;color:#10b981;text-transform:uppercase;letter-spacing:0.04em;">🔒 Anti-Frontrunning Locked Payment Amount</div>
-                    <div style="font-size:14px;color:#fff;margin:4px 0;">Send exactly <strong id="orderExactAmt" style="color:#10b981;font-size:16px;">149.00</strong> <span id="orderTokenLabel">USDT</span></div>
+                    <div style="font-size:14px;color:#fff;margin:4px 0;">Send exactly <strong id="orderExactAmt" style="color:#10b981;font-size:16px;">199.00</strong> <span id="orderTokenLabel">USDT</span></div>
                     <div style="font-size:11px;color:#94a3b8;">This exact fractional amount is reserved for <span id="orderEmailLabel" style="color:#38bdf8;"></span> to guarantee instant automated matching.</div>
                 </div>
-                <p style="font-size:12px;color:#94a3b8;margin:0 0 10px;">Send <strong><span class="lblAmountUsd">149</span> USDT or USDC</strong> from any wallet or exchange (Binance, Coinbase, TronLink, etc.) to our verified treasury address below, then paste your Transaction Hash (TXID):</p>
+                <p style="font-size:12px;color:#94a3b8;margin:0 0 10px;">Send <strong><span class="lblAmountUsd">199</span> USDT or USDC</strong> from any wallet or exchange (Binance, Coinbase, TronLink, etc.) to our verified treasury address below, then paste your Transaction Hash (TXID):</p>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
                     <div>
                         <label style="font-size:11px;color:#94a3b8;display:block;margin-bottom:3px;">Select Network</label>
@@ -2404,7 +2815,7 @@ def get_radar_dashboard():
             <div id="payPaneCard" style="display:none;">
                 <p style="font-size:13px;color:#94a3b8;margin:0 0 12px;">Pay securely by Credit or Debit Card via <strong>iyzico 3D Secure</strong>. Your API Key and Commercial Invoice PDF are generated immediately upon completion.</p>
                 <button type="button" onclick="startIyzicoCardCheckout()" class="btn btn-primary" style="width:100%;justify-content:center;padding:12px;font-size:14px;cursor:pointer;">
-                    💳 Pay with Credit / Debit Card (<span id="lblAmountTry">6,190 ₺</span>)
+                    💳 Pay with Credit / Debit Card (<span id="lblAmountTry">8,250 ₺</span>)
                 </button>
             </div>
 
@@ -2422,9 +2833,9 @@ def get_radar_dashboard():
                     <div>
                         <label style="font-size:11px;color:#94a3b8;display:block;margin-bottom:3px;">Invoice Currency</label>
                         <select id="bankCurrency" style="width:100%;padding:8px;border-radius:6px;border:1px solid #334155;background:#080c14;color:#fff;font-size:12px;">
-                            <option value="USD">USD ($149 / $499)</option>
-                            <option value="TRY">TRY (6,190 ₺ / 20,700 ₺)</option>
-                            <option value="EUR">EUR (€139 / €465)</option>
+                            <option value="USD">USD ($99 / $199 / $499)</option>
+                            <option value="TRY">TRY (4,100 ₺ / 8,250 ₺ / 20,700 ₺)</option>
+                            <option value="EUR">EUR (€95 / €185 / €465)</option>
                         </select>
                     </div>
                     <div>
@@ -2452,7 +2863,7 @@ def get_radar_dashboard():
 
     function openCheckoutModal(tier, tab) {{
         document.getElementById('checkoutModal').style.display = 'flex';
-        selectModalTier(tier || 'developer');
+        selectModalTier(tier || 'pro');
         switchPayTab(tab || 'web3');
         try {{
             const p = localStorage.getItem('werracle_pending_tx');
@@ -2474,9 +2885,10 @@ def get_radar_dashboard():
                 btn.style.background = (t === tier) ? 'rgba(56,189,248,0.12)' : '#080c14';
             }}
         }});
-        document.querySelectorAll('.lblAmountUsd').forEach(el => el.textContent = TIER_USD[tier] || 99);
+        document.querySelectorAll('.lblAmountUsd').forEach(el => el.textContent = TIER_USD[tier] || 199);
         const lblTry = document.getElementById('lblAmountTry');
-        if (lblTry) lblTry.textContent = TIER_TRY[tier] || '4,100 ₺';
+        if (lblTry) lblTry.textContent = TIER_TRY[tier] || '8,250 ₺';
+        if (typeof refreshCryptoOrder === 'function') refreshCryptoOrder();
     }}
     function switchPayTab(tab) {{
         ['web3', 'multi', 'card', 'bank'].forEach(t => {{
@@ -3112,179 +3524,231 @@ def get_werr_circulating_supply_plain():
     except Exception:
         pass
     return PlainTextResponse("999901000", headers={"Access-Control-Allow-Origin": "*"})
+# ============================================================================
+# PHASE B (STAGE-3 B2B ENDPOINTS): ANTI-LIQUIDATION SHIELD, 12-CHAIN & FAZ-2 SSE
+# ============================================================================
 
-_WERREALM_MARKET_CACHE = {"ts": 0.0, "data": None}
+class ShieldCheckRequest(BaseModel):
+    address: str = Field(..., min_length=42, max_length=42, description="EVM wallet or borrower address (0x...)")
+    chain: str = Field("base", description="Target chain: base, ethereum, arbitrum, or all")
+    action: str = Field("preflight", max_length=40, description="Intended action: borrow, withdraw_collateral, swap, repay, add_collateral, preflight")
+    delta_debt_usd: float = Field(0.0, ge=-1e9, le=1e9, description="Simulated change in debt USD (+borrow / -repay)")
+    delta_collateral_usd: float = Field(0.0, ge=-1e9, le=1e9, description="Simulated change in collateral USD (+deposit / -withdraw)")
+    min_safe_hf: float = Field(1.15, ge=1.01, le=3.0, description="Minimum acceptable post-transaction Health Factor")
+    shock_pct: float = Field(10.0, ge=1.0, le=50.0, description="Stress-test collateral drop percentage (e.g. 10.0 for -10%)")
+    market_id: Optional[str] = Field(None, description="Optional specific Morpho marketId (0x...) to evaluate")
 
-@radar_router.get("/market/ticker", summary="Live Base Mainnet DEX Liquidity, Price Discovery & Buyback-Burn Telemetry")
-def get_werr_market_ticker(request: Request):
-    _check_werrealm_public_rate_limit(request)
-    _ensure_werrealm_path()
-    now = time.time()
-    if _WERREALM_MARKET_CACHE["data"] and (now - _WERREALM_MARKET_CACHE["ts"] < 45.0):
-        return JSONResponse(content=_WERREALM_MARKET_CACHE["data"], headers={"Access-Control-Allow-Origin": "*"})
+
+class ShieldBatchRequest(BaseModel):
+    items: List[ShieldCheckRequest] = Field(..., min_length=1, max_length=25, description="Up to 25 pre-flight shield checks per call")
+
+
+@radar_router.post("/shield/check", summary="Pre-Flight Risk Shield & Anti-Liquidation Check (Developer+)")
+def post_shield_check(req: ShieldCheckRequest, request: Request):
+    auth = _require_auth(request, allowed_tiers=["developer", "pro", "institutional"])
     try:
-        from scripts.dex_liquidity_launcher import WerrDexLiquidityLauncher
-        from services.werr_buyback_burn_engine import WerrBuybackBurnEngine
-        launcher = WerrDexLiquidityLauncher()
-        status = launcher.get_market_discovery_status()
-        status.pop("seed_tiers_prepared", None)
-        buyback = WerrBuybackBurnEngine().generate_surplus_buyback_report()
-        status["buyback_burn_flywheel"] = {
-            "fiscal_period": buyback["fiscal_period"],
-            "allocated_burn_reserve_usd": buyback["allocated_burn_reserve_usd"],
-            "target_period_burn_werr": buyback["target_period_burn_werr"],
-            "already_burned_werr": buyback["already_burned_werr"],
-            "remaining_period_burn_werr": buyback["remaining_period_burn_werr"],
-            "remaining_surplus_usd": buyback["remaining_surplus_usd"],
-            "next_reflex_query_hash": buyback["next_reflex_burn_instruction"]["query_hash_bytes32"]
-        }
-        _WERREALM_MARKET_CACHE["ts"] = now
-        _WERREALM_MARKET_CACHE["data"] = status
-        return JSONResponse(content=status, headers={"Access-Control-Allow-Origin": "*"})
-    except Exception:
-        raise HTTPException(status_code=500, detail="Market ticker audit error")
+        res = radar_shield.evaluate_preflight_check(
+            address=req.address,
+            chain=req.chain,
+            action=req.action,
+            delta_debt_usd=req.delta_debt_usd,
+            delta_collateral_usd=req.delta_collateral_usd,
+            min_safe_hf=req.min_safe_hf,
+            shock_pct=req.shock_pct,
+            market_id=req.market_id,
+            tier=auth["tier"],
+        )
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    res["authenticated_tier"] = auth["tier"]
+    return res
 
-_SOVEREIGN_ADMIN_WALLETS = {
-    "0x803a439fa8f7cf078302b51111ae003b5221fc19",
-    "0xa089377506edaee71d90cdfc5ddc84e24d5c0024",
-    "0x2034422f8ba7a38981a0d4e7dc3ed80fe859c0c2"
-}
 
-def _verify_sovereign_admin_sig(auth_obj: dict) -> str:
-    if not isinstance(auth_obj, dict):
-        raise HTTPException(status_code=401, detail="Missing wallet signature auth object")
-    msg = str(auth_obj.get("message", ""))
-    sig = str(auth_obj.get("signature", ""))
-    if not msg.startswith("WERREALM_SOVEREIGN_ADMIN_AUTH:") or not sig:
-        raise HTTPException(status_code=401, detail="Invalid admin auth challenge format")
-    parts = msg.split(":")
-    if len(parts) < 3:
-        raise HTTPException(status_code=401, detail="Malformed challenge")
-    ts = int(parts[1])
-    if abs(int(time.time()) - ts) > 3600:
-        raise HTTPException(status_code=401, detail="Signature session expired (please sign again)")
-    from eth_account import Account
-    from eth_account.messages import encode_defunct
-    recovered = Account.recover_message(encode_defunct(text=msg), signature=sig).lower()
-    if recovered not in _SOVEREIGN_ADMIN_WALLETS:
-        raise HTTPException(status_code=403, detail=f"Wallet {recovered} is not an authorized Sovereign Admin")
-    return recovered
-
-@radar_router.get("/treasury/ledger", summary="Live Sovereign Treasury Financial & Burn Ledger (SSOT)")
-def get_werr_treasury_ledger(request: Request):
-    _check_werrealm_public_rate_limit(request)
-    _ensure_werrealm_path()
-    try:
-        from scripts.treasury_ledger_manager import load_ledger, recalculate
-        data = recalculate(load_ledger())
-        return JSONResponse(content=data, headers={"Access-Control-Allow-Origin": "*"})
-    except Exception:
-        raise HTTPException(status_code=500, detail="Ledger load error")
-
-@radar_router.options("/treasury/admin/{subpath:path}")
-def options_treasury_admin(subpath: str):
-    return Response(
-        status_code=204,
-        headers={
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization"
-        }
-    )
-
-@radar_router.post("/treasury/admin/entry", summary="Add Signed Income or Expense Entry to Sovereign Ledger")
-async def add_werr_treasury_entry(request: Request):
-    _check_werrealm_public_rate_limit(request)
-    _ensure_werrealm_path()
-    body = await request.json()
-    _verify_sovereign_admin_sig(body.get("auth") or {})
-    from scripts.treasury_ledger_manager import load_ledger, recalculate, save_ledger, export_markdown
-    data = load_ledger()
-    etype = body.get("entry_type", "")
-    period = data.get("period", "2026-11")
-    added_id = ""
-    if etype == "income":
-        amt = float(body.get("amount_usd") or 0)
-        if amt <= 0:
-            raise HTTPException(status_code=400, detail="Amount must be > 0")
-        idx = len(data.get("incomes", [])) + 1
-        added_id = f"INC-{period}-{idx:03d}"
-        data.setdefault("incomes", []).append({
-            "id": added_id,
-            "date": body.get("date") or time.strftime("%Y-%m-%d"),
-            "product_platform": str(body.get("product_platform") or "Werracle Risk Radar"),
-            "tier": str(body.get("tier") or "Enterprise Subscription"),
-            "counterparty": str(body.get("counterparty") or "Enterprise Client"),
-            "invoice_no": str(body.get("invoice_no") or ""),
-            "amount_usd": round(amt, 2),
-            "billing_cycle": "Monthly",
-            "payment_status": "PAID_CONFIRMED"
-        })
-    elif etype == "expense":
-        amt = float(body.get("amount_usd") or 0)
-        if amt <= 0:
-            raise HTTPException(status_code=400, detail="Amount must be > 0")
-        idx = len(data.get("expenses", [])) + 1
-        added_id = f"EXP-{period}-{idx:03d}"
-        data.setdefault("expenses", []).append({
-            "id": added_id,
-            "category": str(body.get("category") or "Infrastructure"),
-            "item": str(body.get("item") or "Operational Expense"),
-            "amount_usd": round(amt, 2),
-            "period": period,
-            "due_date": body.get("due_date") or time.strftime("%Y-%m-%d"),
-            "status": str(body.get("status") or "PAID")
-        })
-    else:
-        raise HTTPException(status_code=400, detail="Invalid entry_type")
-
-    data = recalculate(data)
-    save_ledger(data)
-    export_markdown(data)
-    _WERREALM_MARKET_CACHE["ts"] = 0.0
-    return JSONResponse(
-        content={"success": True, "added_id": added_id, "summary": data["summary"]},
-        headers={"Access-Control-Allow-Origin": "*"}
-    )
-
-@radar_router.post("/treasury/admin/burn-record", summary="Record Signed On-Chain Burn Transaction in Sovereign Ledger")
-async def record_werr_onchain_burn(request: Request):
-    _check_werrealm_public_rate_limit(request)
-    _ensure_werrealm_path()
-    body = await request.json()
-    signer = _verify_sovereign_admin_sig(body.get("auth") or {})
-    tx_hash = str(body.get("tx_hash") or "").strip()
-    werr_burned = float(body.get("werr_burned") or 0)
-    if not tx_hash.startswith("0x") or len(tx_hash) != 66 or werr_burned <= 0:
-        raise HTTPException(status_code=400, detail="Invalid tx_hash or werr_burned")
-    from scripts.treasury_ledger_manager import load_ledger, recalculate, save_ledger, export_markdown
-    data = load_ledger()
-    period = data.get("period", "2026-11")
-    evts = data.setdefault("token_burn_strategy", {}).setdefault("burn_events", [])
-    idx = len(evts) + 1
-    evt_id = f"BURN-{period}-{idx:03d}"
-    evts.append({
-        "event_id": evt_id,
-        "type": "ONCHAIN_REFLEX_BURN",
+@radar_router.post("/shield/batch", summary="Batch Pre-Signing Risk Shield for Multisigs & Agent Fleets (Institutional)")
+def post_shield_batch(req: ShieldBatchRequest, request: Request):
+    auth = _require_auth(request, allowed_tiers=["institutional"])
+    results = []
+    blocked = 0
+    warned = 0
+    for item in req.items:
+        try:
+            r = radar_shield.evaluate_preflight_check(
+                address=item.address,
+                chain=item.chain,
+                action=item.action,
+                delta_debt_usd=item.delta_debt_usd,
+                delta_collateral_usd=item.delta_collateral_usd,
+                min_safe_hf=item.min_safe_hf,
+                shock_pct=item.shock_pct,
+                market_id=item.market_id,
+                tier=auth["tier"],
+            )
+            if r.get("verdict") == "BLOCK":
+                blocked += 1
+            elif r.get("verdict") == "WARN":
+                warned += 1
+            results.append(r)
+        except ValueError as ve:
+            blocked += 1
+            results.append({"address": item.address, "verdict": "BLOCK", "error": str(ve)})
+    return {
         "timestamp_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-        "block_number": 0,
-        "tx_hash": tx_hash,
-        "explorer_url": f"https://basescan.org/tx/{tx_hash}",
-        "product_platform": str(body.get("product_platform") or "Werrealm Sovereign Burn"),
-        "invoice_no": str(body.get("invoice_no") or "REFLEX-BURN"),
-        "amount_usd": round(werr_burned / 1000.0, 2),
-        "werr_burned": round(werr_burned, 4),
-        "from_wallet": signer,
-        "dead_address": "0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2 (burnForReflex)",
-        "status": "CONFIRMED_ON_CHAIN"
-    })
-    data["summary"]["total_werr_burned_to_date"] = sum(float(e.get("werr_burned", 0)) for e in evts)
-    data = recalculate(data)
-    save_ledger(data)
-    export_markdown(data)
-    _WERREALM_MARKET_CACHE["ts"] = 0.0
-    return JSONResponse(
-        content={"success": True, "event_id": evt_id, "summary": data["summary"]},
-        headers={"Access-Control-Allow-Origin": "*"}
-    )
+        "authenticated_tier": auth["tier"],
+        "checked_count": len(results),
+        "blocked_count": blocked,
+        "warned_count": warned,
+        "results": results,
+    }
 
+
+@radar_router.get("/shield/position/{chain}/{address}", summary="Position Health, Shock Buffer & Exact Repay/Collateral Rescue Recipe (Pro+)")
+def get_shield_position(
+    chain: str,
+    address: str,
+    request: Request,
+    target_hf: float = Query(1.25, ge=1.05, le=3.0, description="Desired post-rescue Health Factor target"),
+    shock_pct: float = Query(10.0, ge=1.0, le=50.0, description="Collateral drop percentage for stress simulation"),
+):
+    auth = _require_auth(request, allowed_tiers=["pro", "institutional"])
+    try:
+        res = radar_shield.get_position_shield(
+            address=address,
+            chain=chain,
+            target_hf=target_hf,
+            shock_pct=shock_pct,
+            include_rescue_recipe=True,
+        )
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    res["authenticated_tier"] = auth["tier"]
+    return res
+
+
+@radar_router.get("/opportunities/open-race", summary="Live 12-Chain Non-SVR Open-Race Liquidation Opportunities (Pro+)")
+def get_open_race_opportunities(
+    request: Request,
+    window: str = Query("7d", pattern="^(24h|7d)$", description="Rolling aggregation window: 24h or 7d"),
+    chain: str = Query("all", description="Optional single EVM chain filter (e.g. ethereum, bnb, avalanche, polygon, arbitrum, base) or all"),
+    min_open_usd: float = Query(0.0, ge=0.0, description="Filter chains with at least N USD in open-race bonuses"),
+):
+    auth = _require_auth(request, allowed_tiers=["pro", "institutional"])
+    res = radar_shield.build_open_race_payload(window=window, chain=chain, min_open_usd=min_open_usd)
+    res["authenticated_tier"] = auth["tier"]
+    return res
+
+
+@radar_router.get("/solvers/live", summary="Live 12-Chain Solver & Liquidation Executor Leaderboard (Pro+)")
+def get_live_solvers(
+    request: Request,
+    window: str = Query("7d", pattern="^(24h|7d)$", description="Rolling event window: 24h or 7d"),
+    chain: str = Query("all", description="Optional EVM chain filter or all"),
+    svr_only: bool = Query(False, description="When true, include only Chainlink SVR auction liquidations"),
+    limit: int = Query(50, ge=1, le=200),
+):
+    auth = _require_auth(request, allowed_tiers=["pro", "institutional"])
+    res = radar_shield.build_live_solvers_payload(window=window, chain=chain, svr_only=svr_only, limit=limit)
+    res["authenticated_tier"] = auth["tier"]
+    return res
+
+
+@radar_router.get("/telemetry/faz2-leads", summary="Sub-Second Arbitrum & Base Faz-2 Oracle Shock Telemetry & Lead Diagnostics (Institutional)")
+def get_faz2_leads(
+    request: Request,
+    chain: str = Query("all", description="Chain filter: all, arbitrum, or base"),
+    limit: int = Query(50, ge=1, le=200),
+):
+    auth = _require_auth(request, allowed_tiers=["institutional"])
+    res = radar_shield.load_faz2_leads(chain=chain, limit=limit)
+    res["authenticated_tier"] = auth["tier"]
+    return res
+
+
+@radar_router.get("/stream/oracle-shocks", summary="Real-Time Sub-Second Oracle Shock SSE Stream (Institutional)")
+async def stream_oracle_shocks(
+    request: Request,
+    chain: str = Query("all", description="Chain filter: all, arbitrum, or base"),
+    replay: int = Query(5, ge=0, le=25, description="Replay latest N oracle-triggered HF breach events upon connect"),
+    max_events: Optional[int] = Query(None, ge=1, le=500, description="Optional bounded event cap before stream closes cleanly"),
+    max_seconds: int = Query(300, ge=5, le=3600, description="Max stream duration seconds (EventSource auto-reconnects)"),
+):
+    auth = _require_auth(request, allowed_tiers=["institutional"])
+
+    def _ev_key(ev: Dict[str, Any]) -> str:
+        return f"{ev.get('chain')}|{ev.get('sequencer_id')}|{ev.get('oracle_tx')}|{ev.get('borrower')}"
+
+    async def event_generator():
+        yield "retry: 3000\n\n"
+        seen = collections.deque(maxlen=500)
+        seen_set = set()
+        emitted = 0
+        started = time.monotonic()
+        last_hb = started
+
+        init_data = radar_shield.load_faz2_leads(chain=chain, limit=max(replay, 5))
+        initial_events = list(reversed(init_data.get("recent_oracle_shocks") or []))
+        if replay == 0:
+            for ev in initial_events:
+                k = _ev_key(ev)
+                seen.append(k)
+                seen_set.add(k)
+        else:
+            for ev in initial_events[-replay:]:
+                k = _ev_key(ev)
+                if k not in seen_set:
+                    if len(seen) == seen.maxlen:
+                        seen_set.discard(seen[0])
+                    seen.append(k)
+                    seen_set.add(k)
+                yield f"event: oracle_shock\nid: {k}\ndata: {json.dumps(ev, ensure_ascii=False)}\n\n"
+                emitted += 1
+                if max_events is not None and emitted >= max_events:
+                    return
+
+        while (time.monotonic() - started) < max_seconds:
+            if await request.is_disconnected():
+                return
+            await asyncio.sleep(1.0)
+            if await request.is_disconnected():
+                return
+
+            cur_data = radar_shield.load_faz2_leads(chain=chain, limit=20)
+            fresh = []
+            for ev in reversed(cur_data.get("recent_oracle_shocks") or []):
+                k = _ev_key(ev)
+                if k not in seen_set:
+                    if len(seen) == seen.maxlen:
+                        seen_set.discard(seen[0])
+                    seen.append(k)
+                    seen_set.add(k)
+                    fresh.append((k, ev))
+
+            for k, ev in fresh:
+                yield f"event: oracle_shock\nid: {k}\ndata: {json.dumps(ev, ensure_ascii=False)}\n\n"
+                emitted += 1
+                last_hb = time.monotonic()
+                if max_events is not None and emitted >= max_events:
+                    return
+
+            now_m = time.monotonic()
+            if (now_m - last_hb) >= 10.0:
+                hb = {
+                    "timestamp_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                    "tier": auth["tier"],
+                    "chain_filter": chain,
+                    "engines": cur_data.get("engines"),
+                }
+                yield f"event: heartbeat\ndata: {json.dumps(hb, ensure_ascii=False)}\n\n"
+                emitted += 1
+                last_hb = now_m
+                if max_events is not None and emitted >= max_events:
+                    return
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )

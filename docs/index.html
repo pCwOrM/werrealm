@@ -887,7 +887,7 @@
           <ul style="color: #cbd5e1; font-size: 0.85rem; margin-left: 18px; margin-bottom: 20px; line-height: 1.7;">
             <li>250,000 queries quota (300 req/min)</li>
             <li>Morpho Blue & Aave v3 positions</li>
-            <li>50ms REST API gateway</li>
+            <li>Anti-Liquidation Shield pre-flight gate (<code>POST /shield/check</code>)</li>
             <li>0% VAT Tax-Exempt Commercial Invoice</li>
           </ul>
         </div>
@@ -909,9 +909,9 @@
           </p>
           <ul style="color: #cbd5e1; font-size: 0.85rem; margin-left: 18px; margin-bottom: 20px; line-height: 1.7;">
             <li>1,200 req/min unlimited bandwidth</li>
-            <li>Resonance liquidation filters (HF &lt; 1.05)</li>
-            <li>Base 200ms Canonical + Arbitrum Sequencer</li>
-            <li>25ms RAMDisk low-latency cache</li>
+            <li>Wallet Shield &amp; deleverage plans (<code>/shield/position</code>)</li>
+            <li>12-chain open-race &amp; live solver feeds (<code>/opportunities/open-race</code>, <code>/solvers/live</code>)</li>
+            <li>24/7 Webhook &amp; Telegram HF alerts (<code>/alerts/subscribe</code>) + 25ms RAMDisk</li>
           </ul>
         </div>
         <a href="https://radar.werracle.com" target="_blank" class="btn" style="text-align: center; justify-content: center; width: 100%; font-size: 0.85rem; padding: 10px;" rel="noopener noreferrer">
@@ -932,9 +932,9 @@
           </p>
           <ul style="color: #cbd5e1; font-size: 0.85rem; margin-left: 18px; margin-bottom: 20px; line-height: 1.7;">
             <li>3,000 req/min bare-metal priority allocation</li>
-            <li>Neural-Alpha neuro-predictive feed</li>
-            <li>Triple-Chain: Base + Arbitrum + L1 Reth</li>
-            <li>Sub-15ms guaranteed SLA latency</li>
+            <li>Batch Shield up to 25 wallets (<code>POST /shield/batch</code>)</li>
+            <li>Faz-2 oracle shocks &amp; live SSE (<code>/telemetry/faz2-leads</code>, <code>/stream/oracle-shocks</code>)</li>
+            <li>Neural-Alpha, Vault Stress Tests (<code>/curator/{vault}</code>) &amp; Triple-Chain Reth</li>
           </ul>
         </div>
         <a href="https://radar.werracle.com" target="_blank" class="btn" style="background: linear-gradient(135deg, var(--accent), #059669); text-align: center; justify-content: center; width: 100%; font-size: 0.85rem; padding: 10px; color: #fff;" rel="noopener noreferrer">

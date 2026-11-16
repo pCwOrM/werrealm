@@ -64,7 +64,7 @@ Werrealm runs on an enterprise dual-socket NUMA server with 40 CPU threads, 251 
 - **Primary Chain:** Base (Coinbase L2)
 - **Token Utility:**
   1. **Gas Currency:** Native execution fee on Werrealm App-Rollup.
-  2. **Stake-to-Access:** Tiered access to `radar.werracle.com` B2B Institutional APIs (600 - 3,000 req/min).
+  2. **Stake-to-Access:** Tiered access to `radar.werracle.com` B2B APIs (`$99` Developer 300 req/min · `$199` Pro 1,200 req/min · `$499` Institutional 3,000 req/min), spanning Anti-Liquidation Shield pre-flight checks, 12-chain open-race & live solver feeds, 24/7 `/alerts/subscribe` push telemetry, and Faz-2 oracle-shock SSE streaming.
   3. **Metabolic Burn:** `$WERR` burned on-chain to generate high-priority ATP quota (`burnForATP`).
   4. **Revenue-Backed Buyback & Burn:** 40% of B2B subscription revenues and MEV liquidation profits automatically buy back and burn `$WERR` on DEXes.
 

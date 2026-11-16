@@ -4,8 +4,9 @@
   "network": "base_mainnet",
   "chain_id": 8453,
   "base_rpcs": [
-    "https://mainnet.base.org",
-    "https://base-rpc.publicnode.com"
+    "https://base-rpc.publicnode.com",
+    "https://base.drpc.org",
+    "https://mainnet.base.org"
   ],
   "pricing": {
     "developer": {
@@ -17,6 +18,7 @@
       "features": [
         "250.000 Karar / Sorgu Aylık Kota (300 req/dakika hız sınırı)",
         "Morpho Blue & Aave v3 Canlı Pozisyonlar (/v1/radar/hot-positions)",
+        "Anti-Liquidation Shield pre-flight gate (POST /v1/radar/shield/check)",
         "Chainlink SVR Solver Marj & Teklif Analitiği (/v1/radar/solvers)",
         "Standart 50ms REST API Gateway Erişimi",
         "Resmi e-Arşiv Uyumlu Onaylı PDF Ticari Fatura (%0 KDV)"
@@ -37,6 +39,8 @@
         "1.200 req/dakika Özel Ayrılmış Kapasite (Aylık Sınırsız İstek)",
         "Rezonans Filtreli Kritik Tasfiyeler (/v1/radar/hot-positions?filter=resonance)",
         "Çift Zincirli Canlı Gözlem (Base L2 200ms Kanonik Blok Akışı + Arbitrum One Sequencer)",
+        "12-Zincir Açık Yarış & Canlı Solver Akışı (/v1/radar/opportunities/open-race & /v1/radar/solvers/live)",
+        "Cüzdan Anti-Liquidation Shield & Deleverage Planı (/v1/radar/shield/position/{chain}/{address})",
         "İşlem Başına OEV Analitiği ve Tarihsel Veri Seti (/v1/radar/oev-analytics)",
         "25ms Optimize Bellek İçi RAMDisk Gecikmesi",
         "Özel Webhook & Telegram/Discord Sinyal Boru Hattı"
@@ -56,6 +60,8 @@
       "features": [
         "3.000 req/dakika Özel Çıplak Donanım (Bare-Metal) Kapasitesi",
         "Milisaniyelik Neural-Alpha Sinyal Beslemesi (/v1/radar/neural-alpha)",
+        "Faz-2 Alt-Saniye Oracle Shock & Canlı SSE Akışı (/v1/radar/telemetry/faz2-leads & /v1/radar/stream/oracle-shocks)",
+        "Toplu Anti-Liquidation Shield 25 Cüzdana Kadar (POST /v1/radar/shield/batch)",
         "Üç Zincirli Tam Kapsam: Base L2 + Arbitrum One + Ethereum L1 (Reth Yerel Düğüm)",
         "MetaMorpho Kasa Stres Simülasyon Motoru (/v1/radar/curator/{vault})",
         "SLA Garantili Sub-15ms Yanıt & %99.99 Kesintisiz Çalışma Taahhüdü",

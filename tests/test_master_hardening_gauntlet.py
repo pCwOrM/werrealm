@@ -128,6 +128,14 @@ class TestWerrealmHardeningGauntlet(unittest.TestCase):
         self.assertIn('@radar_router.get("/treasury/health"', code)
         self.assertIn('@radar_router.get("/supply/total"', code)
         self.assertIn('@radar_router.get("/supply/circulating"', code)
+        self.assertIn('@radar_router.post("/shield/check"', code)
+        self.assertIn('@radar_router.post("/shield/batch"', code)
+        self.assertIn('@radar_router.get("/shield/position/{chain}/{address}"', code)
+        self.assertIn('@radar_router.get("/opportunities/open-race"', code)
+        self.assertIn('@radar_router.get("/solvers/live"', code)
+        self.assertIn('@radar_router.get("/telemetry/faz2-leads"', code)
+        self.assertIn('@radar_router.get("/stream/oracle-shocks"', code)
+        self.assertTrue(os.path.exists(os.path.join(ROOT_DIR, "staging_answerr", "radar_shield.py")))
 
 
     def test_08_security_invariants_and_input_sanitization(self):
@@ -171,6 +179,47 @@ class TestWerrealmHardeningGauntlet(unittest.TestCase):
             rep["next_reflex_burn_instruction"]["werr_amount_wei"],
             "1000000000000000000000"
         )
+
+    def test_10_faz_b_shield_and_phase3_unit(self):
+        """Faz-B Anti-Liquidation Shield hesaplama ve pre-flight karar mantigini dogrular."""
+        sys.path.insert(0, os.path.join(ROOT_DIR, "staging_answerr"))
+        import radar_shield
+
+        sample = [{
+            "chain": "base",
+            "protocol": "Morpho Blue",
+            "market_id": "0x" + "1" * 64,
+            "market_pair": "WETH/USDC",
+            "health_factor": 1.30,
+            "debt_usd": 1000.0,
+            "collateral_usd": 1500.0,
+            "lltv": 0.86,
+        }]
+        res_pass = radar_shield.evaluate_preflight_check(
+            address="0x" + "a" * 40,
+            chain="base",
+            action="preflight",
+            delta_debt_usd=0.0,
+            min_safe_hf=1.15,
+            shock_pct=10.0,
+            use_graphql=False,
+            positions_override=sample,
+        )
+        self.assertIn(res_pass["verdict"], ("PASS", "WARN"))
+
+        res_block = radar_shield.evaluate_preflight_check(
+            address="0x" + "a" * 40,
+            chain="base",
+            action="borrow",
+            delta_debt_usd=350.0,
+            min_safe_hf=1.15,
+            shock_pct=10.0,
+            tier="pro",
+            use_graphql=False,
+            positions_override=sample,
+        )
+        self.assertEqual(res_block["verdict"], "BLOCK")
+        self.assertIn("rescue_targets", res_block)
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
