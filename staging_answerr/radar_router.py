@@ -658,13 +658,42 @@ def verify_api_key(request: Request):
             status_code=401,
             content={"valid": False, "error": "No valid API key provided in header."}
         )
+    tier_l = (auth.get("tier") or "pro").lower()
+    dev_eps = [
+        "GET /v1/radar/overview",
+        "GET /v1/radar/chains",
+        "GET /v1/radar/dataset",
+        "GET /v1/radar/hot-positions",
+        "GET /v1/radar/solvers",
+        "GET /v1/radar/oev-analytics",
+        "POST /v1/radar/shield/check",
+    ]
+    pro_eps = dev_eps + [
+        "GET /v1/radar/shield/position/{chain}/{address}",
+        "GET /v1/radar/opportunities/open-race",
+        "GET /v1/radar/solvers/live",
+        "GET /v1/radar/svr/transactions",
+        "POST /v1/radar/alerts/subscribe",
+        "POST /v1/radar/alerts/test",
+    ]
+    inst_eps = pro_eps + [
+        "POST /v1/radar/shield/batch",
+        "GET /v1/radar/telemetry/faz2-leads",
+        "GET /v1/radar/stream/oracle-shocks",
+        "GET /v1/radar/hot-positions?filter=resonance",
+        "GET /v1/radar/curator/{vault}",
+        "GET /v1/radar/neural-alpha",
+    ]
+    unlocked = inst_eps if tier_l == "institutional" else (pro_eps if tier_l == "pro" else dev_eps)
     return {
         "valid": True,
         "tier": auth["tier"],
         "email": auth["email"],
         "rate_limit_per_min": auth["rate_limit_per_min"],
         "status": auth["status"],
-        "expires_at_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(auth["expires_at"]))
+        "expires_at_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(auth["expires_at"])),
+        "api_version": "2026-11-phase3",
+        "unlocked_endpoints": unlocked,
     }
 
 
@@ -1380,6 +1409,7 @@ def get_hot_positions(
     compact: bool = Query(False, description="Lightweight payload returning only actionable strike queues and hot borrower positions (sub-10KB, ideal for sub-2s polling)")
 ):
     auth = _extract_auth(request)
+    is_paid = auth and auth["tier"] in ["developer", "pro", "institutional"]
     is_pro = auth and auth["tier"] in ["pro", "institutional"]
 
     chain_norm = (chain or "all").strip().lower()
@@ -1696,7 +1726,7 @@ def get_hot_positions(
                 combined.append(("ethereum_mainnet", 1, m))
 
     combined.sort(key=lambda x: float(x[2].get("borc_usd", 0) or 0), reverse=True)
-    effective_limit = min(limit, 25) if not is_pro else limit
+    effective_limit = min(limit, 25) if not is_paid else limit
 
     markets_risk = []
     for cname, cid, m in combined[:effective_limit]:
@@ -1796,7 +1826,7 @@ def get_hot_positions(
             "by_chain": by_chain_summary,
             "note": "hot = HF < 1.10 across Base L2 and Ethereum Mainnet Morpho Blue shadow indexers",
             "risk_threshold": "Health Factor (HF) < 1.10",
-            "tier_unlocked": "Pro/Institutional" if is_pro else "Free (Sample of 25)",
+            "tier_unlocked": "Pro/Institutional" if is_pro else ("Developer" if is_paid else "Free (Sample of 25)"),
             "limit_applied": effective_limit,
             "monitored_markets": markets_risk
         }
@@ -1891,9 +1921,9 @@ def get_neural_alpha(request: Request):
     }
 
 
-@radar_router.get("/solvers", summary="SVR Solvers & MEV Competition Intelligence (Pro Tier)")
+@radar_router.get("/solvers", summary="SVR Solvers & MEV Competition Intelligence (Developer+)")
 def get_solvers_intelligence(request: Request, limit: int = Query(50, ge=1, le=200)):
-    auth = _require_auth(request, allowed_tiers=["pro", "institutional"])
+    auth = _require_auth(request, allowed_tiers=["developer", "pro", "institutional"])
 
     ds = _get_cached_json(EMPIRICAL_DATASET, {})
     svr_data = ds.get("svr_liquidations", [])
@@ -2682,7 +2712,7 @@ def get_radar_dashboard():
                 <a href="/docs#2-endpoints" class="btn btn-primary" target="_blank" style="border-color:#38bdf8;color:#38bdf8;" title="Requires Institutional / Pro API Key">&rarr; /v1/radar/svr/transactions (Granular SVR Auctions &amp; Bid Ceiling)</a>
                 <a href="/v1/radar/hot-positions" class="btn btn-primary" target="_blank">&rarr; /v1/radar/hot-positions</a>
                 <a href="/v1/radar/oev-analytics" class="btn" target="_blank">&rarr; /v1/radar/oev-analytics</a>
-                <a href="/docs#1-authentication" class="btn btn-primary" title="Requires a Pro API key (X-API-Key header)">&rarr; /v1/radar/solvers (Pro &middot; API key required)</a>
+                <a href="/docs#1-authentication" class="btn btn-primary" title="Requires a Developer+ API key (X-API-Key header)">&rarr; /v1/radar/solvers (Dev+ &middot; API key required)</a>
                 <a href="/docs#phase3-shield" class="btn" style="border-color:#34e3b0;color:#34e3b0;" title="Requires Developer+ API key">POST /v1/radar/shield/check (Dev+)</a>
                 <a href="/docs#phase3-shield" class="btn" style="border-color:#34e3b0;color:#34e3b0;" title="Requires Pro+ API key">&rarr; /v1/radar/shield/position/&#123;chain&#125;/&#123;address&#125; (Pro+)</a>
                 <a href="/docs#phase3-open-race" class="btn" style="border-color:#38bdf8;color:#38bdf8;" title="Requires Pro+ API key">&rarr; /v1/radar/opportunities/open-race (Pro+ &middot; 12 Chains)</a>
