@@ -16,6 +16,9 @@ venv/
 *.pem
 *creds*.json
 *secret*
+*_secrets*
+*.dpapi*
+.secrets/
 *token*
 *.id_rsa
 *.id_ed25519

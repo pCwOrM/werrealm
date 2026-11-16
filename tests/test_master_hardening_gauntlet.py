@@ -54,6 +54,19 @@ class TestWerrealmHardeningGauntlet(unittest.TestCase):
         # Institutional rate limit
         self.assertEqual(cfg["pricing"]["institutional"]["rate_limit_per_min"], 3000)
 
+        # Anti-leak invariant: staging config must never embed live Binance/iyzico secrets
+        for field_val in [
+            cfg.get("binance_api_key"),
+            cfg.get("binance_api_secret"),
+            (cfg.get("iyzico") or {}).get("api_key"),
+            (cfg.get("iyzico") or {}).get("secret_key"),
+        ]:
+            s = str(field_val or "").upper()
+            self.assertTrue(
+                (not s) or any(m in s for m in ("REDACTED", "PLACEHOLDER", "YOUR_", "CHANGEME")),
+                "staging_answerr/radar_b2b_config.json icinde canli API anahtari olamaz!"
+            )
+
     def test_03_live_onchain_stake_gate(self):
         """Base Mainnet RPC'si üzerinden Bekirhan'ın cüzdanının canlı bakiye ve Alpha tier doğrulamasını test eder."""
         gate = WerrStakeGate()

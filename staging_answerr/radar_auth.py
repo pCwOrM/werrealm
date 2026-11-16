@@ -22,6 +22,7 @@ from typing import Optional, Dict, Any, List
 
 DB_PATH = "/var/lib/werracle-health/werracle_api_keys.db"
 CONFIG_PATH = "/opt/apps/answerr/api/radar_b2b_config.json"
+SECRETS_PATH = os.environ.get("RADAR_SECRETS_PATH", "/etc/werracle/radar_secrets.json")
 
 DEFAULT_CONFIG = {
     "usdc_deposit_address": "0x4945ef6e124eea2176ddf050b33db42b0ae8c7f7",
@@ -265,7 +266,13 @@ _CACHE_EXPIRY: Dict[str, float] = {}
 _RATE_LIMIT_COUNTERS: Dict[str, Dict[int, int]] = {}
 
 
+def _is_placeholder_secret(val: Any) -> bool:
+    s = str(val or "").strip().upper()
+    return (not s) or any(m in s for m in ("REDACTED", "PLACEHOLDER", "YOUR_", "CHANGEME"))
+
+
 def load_config() -> Dict[str, Any]:
+    merged: Dict[str, Any] = None
     if os.path.exists(CONFIG_PATH):
         try:
             with open(CONFIG_PATH, "r", encoding="utf-8") as f:
@@ -274,10 +281,42 @@ def load_config() -> Dict[str, Any]:
                 for t_k, t_v in DEFAULT_CONFIG["pricing"].items():
                     if t_k in merged.get("pricing", {}):
                         merged["pricing"][t_k] = {**t_v, **merged["pricing"][t_k]}
-                return merged
+        except Exception:
+            merged = None
+    if merged is None:
+        return {**DEFAULT_CONFIG, "payments_enabled": False}
+
+    # Overlay isolated runtime secrets (/etc/werracle/radar_secrets.json, chmod 600)
+    sec_file = os.environ.get("RADAR_SECRETS_PATH", SECRETS_PATH)
+    if sec_file and os.path.exists(sec_file):
+        try:
+            with open(sec_file, "r", encoding="utf-8") as sf:
+                sec = json.load(sf) or {}
+            for k in ("binance_api_key", "binance_api_secret"):
+                if not _is_placeholder_secret(sec.get(k)):
+                    merged[k] = sec[k]
+            if isinstance(sec.get("iyzico"), dict):
+                base_iyz = dict(merged.get("iyzico") or {})
+                for ik in ("api_key", "secret_key", "base_url", "sandbox", "usd_try_rate"):
+                    if ik in sec["iyzico"] and (ik in ("base_url", "sandbox", "usd_try_rate") or not _is_placeholder_secret(sec["iyzico"].get(ik))):
+                        base_iyz[ik] = sec["iyzico"][ik]
+                merged["iyzico"] = base_iyz
         except Exception:
             pass
-    return {**DEFAULT_CONFIG, "payments_enabled": False}
+
+    # Env var overrides take highest precedence
+    if os.environ.get("RADAR_BINANCE_API_KEY"):
+        merged["binance_api_key"] = os.environ["RADAR_BINANCE_API_KEY"]
+    if os.environ.get("RADAR_BINANCE_API_SECRET"):
+        merged["binance_api_secret"] = os.environ["RADAR_BINANCE_API_SECRET"]
+    if os.environ.get("RADAR_IYZICO_API_KEY") or os.environ.get("RADAR_IYZICO_SECRET_KEY"):
+        iyz = dict(merged.get("iyzico") or {})
+        if os.environ.get("RADAR_IYZICO_API_KEY"):
+            iyz["api_key"] = os.environ["RADAR_IYZICO_API_KEY"]
+        if os.environ.get("RADAR_IYZICO_SECRET_KEY"):
+            iyz["secret_key"] = os.environ["RADAR_IYZICO_SECRET_KEY"]
+        merged["iyzico"] = iyz
+    return merged
 
 
 def claim_message(tx_hash: str, tier: str, email: str) -> str:
