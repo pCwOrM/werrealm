@@ -1348,7 +1348,7 @@ Proforma Fatura PDF: {pdf_url}
 Ödemeniz TEB hesabımıza ulaştığında API erişim anahtarınız ve onaylı faturanız anında e-posta ile tarafınıza iletilecektir.
 
 Saygılarımızla,
-ITouch Bilişim Sistemleri Ltd. Şti. · Çukurova Teknokent
+ITouch Bilişim Sistemleri Ltd. Şti. · Cukurova University Technopark
 Werracle Destek Ekibi: contact@werracle.com
 """
                 msg_cust = MIMEText(cust_text, "plain", "utf-8")

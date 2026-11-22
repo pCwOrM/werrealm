@@ -120,7 +120,7 @@ Werrealm operates on a self-sustaining, revenue-backed DePIN model. Commercial r
     md += """
 ---
 
-*Audited and published by ITOUCH BILISIM SISTEMLERI LTD. STI. (Çukurova Teknokent).*
+*Audited and published by ITOUCH BILISIM SISTEMLERI LTD. STI. (Cukurova University Technopark).*
 """
 
     with open(MD_EXPORT_PATH, "w", encoding="utf-8") as f:

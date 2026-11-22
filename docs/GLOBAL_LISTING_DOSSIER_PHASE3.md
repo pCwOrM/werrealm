@@ -2,7 +2,7 @@
 **Network:** Base Mainnet (Chain ID: `8453`)  
 **Token Name:** Werrium (`$WERR`)  
 **Token Contract:** [`0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2`](https://basescan.org/token/0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2)  
-**Governing Institution:** ITOUCH BILISIM SISTEMLERI LTD. STI. (Çukurova University Science Park / Teknokent)  
+**Governing Institution:** ITOUCH BILISIM SISTEMLERI LTD. STI. (Cukurova University Technopark / Teknokent)  
 
 ---
 

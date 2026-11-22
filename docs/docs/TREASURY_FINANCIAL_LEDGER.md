@@ -1,7 +1,7 @@
 # WERREALM SOVEREIGN TREASURY & FINANCIAL LEDGER
 **Fiscal Period:** 2026-11  
 **Governing Institution:** ITOUCH BILISIM SISTEMLERI LTD. STI.  
-**R&D Campus:** Cukurova University Science Park (Teknokent), Adana, Turkey  
+**R&D Campus:** Cukurova University Technopark (Teknokent), Adana, Turkey  
 **Single Source of Truth:** `werrealm/data/treasury_ledger.json`  
 **Last Audit Timestamp:** 2026-11-04T18:32:58Z  
 
@@ -59,4 +59,4 @@ Werrealm operates on a self-sustaining, revenue-backed DePIN model. Commercial r
 
 ---
 
-*Audited and published by ITOUCH BILISIM SISTEMLERI LTD. STI. (Çukurova Teknokent).*
+*Audited and published by ITOUCH BILISIM SISTEMLERI LTD. STI. (Cukurova University Technopark).*

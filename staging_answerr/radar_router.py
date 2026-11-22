@@ -227,7 +227,7 @@ def get_plans():
     enabled = cfg.get("payments_enabled", True)
     return {
         "service": "Werracle B2B Risk Radar & OEV Data-as-a-Service (DaaS)",
-        "commercial_operator": "ITouch Bilişim Sistemleri Mühendislik Danışmanlık Sanayi ve Ticaret Limited Şirketi (Çukurova Teknokent, Adana, Türkiye — VKN: 4690944558)",
+        "commercial_operator": "ITouch Bilişim Sistemleri Mühendislik Danışmanlık Sanayi ve Ticaret Limited Şirketi (Cukurova University Technopark, Adana, Türkiye — VKN: 4690944558)",
         "tax_exemption_basis": "0% KDV / VAT Exempt (4691 s. Teknoloji Geliştirme Bölgeleri Kanunu ve 3065 s. KDV Kanunu Geçici 20/1 md. — Teknopark Ar-Ge Yazılım İstisnası)",
         "network": "Base Mainnet (Chain ID: 8453) + Multi-Chain EVM & TRON TRC20 + iyzico 3D Secure Card + TEB Corporate Bank Wire (TRY / USD / EUR)",
         "accepted_token": "USDC & USDT (Base, TRON TRC20, Ethereum ERC20, Arbitrum One, BNB Chain)",
@@ -2722,7 +2722,7 @@ def get_radar_dashboard():
             </div>
         </div>
         <footer style="margin-top:24px;padding-top:18px;border-top:1px solid var(--border);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--text-muted);">
-            <span>&copy; 2026 Werracle &amp; Answerr &mdash; ITouch Systems &middot; Cukurova University Science Park (ITouch Bilişim Sistemleri Ltd. Şti.)</span>
+            <span>&copy; 2026 Werracle &amp; Answerr &mdash; ITouch Systems &middot; Cukurova University Technopark (ITouch Bilişim Sistemleri Ltd. Şti.)</span>
             <span><a href="https://werracle.com" style="color:#38bdf8;text-decoration:none;">werracle.com</a> &bull; <a href="https://werracle.io" style="color:#38bdf8;text-decoration:none;">werracle.io</a> &bull; <a href="mailto:contact@werracle.com" style="color:#38bdf8;text-decoration:none;">contact@werracle.com</a></span>
         </footer>
     </main>
