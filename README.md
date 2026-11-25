@@ -1,10 +1,14 @@
 # Werrealm (`$WERR`)
 
+[![arXiv Flagship: 2611.32393](https://img.shields.io/badge/arXiv-2611.32393%20%5Bcs.LG%5D-b31b1b.svg?logo=arxiv&logoColor=white)](https://arxiv.org/abs/2611.32393)
+[![arXiv: 2609.30719](https://img.shields.io/badge/arXiv-2609.30719%20%5Bcs.CR%5D-b31b1b.svg?logo=arxiv&logoColor=white)](https://arxiv.org/abs/2609.30719)
+[![alphaXiv: 2609.30719](https://img.shields.io/badge/alphaXiv-2609.30719_(Poster%20v2)-6d28d9.svg)](https://www.alphaxiv.org/abs/2609.30719)
+[![Elsevier SSRN](https://img.shields.io/badge/SSRN-7659198_(v4.0)_%7C_7626279-005a9c.svg?logo=elsevier&logoColor=white)](https://papers.ssrn.com/abstract=7659198)
+[![Hugging Face: WERR Lab](https://img.shields.io/badge/Hugging_Face-WERR_Lab-FFD21E.svg?logo=huggingface&logoColor=black)](https://huggingface.co/werr-lab)
 [![Base Mainnet: WERR](https://img.shields.io/badge/Base_Mainnet_(8453)-0xFfa2...96d2-0052FF.svg?logo=coinbase)](https://basescan.org/token/0xFfa2c95b68B76af00FBD84295cBA5e5268a996d2)
 [![Superchain PR #1391](https://img.shields.io/badge/Optimism_Superchain-PR_%231391-FF0420.svg?logo=optimism)](https://github.com/ethereum-optimism/ethereum-optimism.github.io/pull/1391)
 [![Concept DOI: Werracle](https://img.shields.io/badge/Zenodo_Concept_DOI-10.5281%2Fzenodo.22942598-blue.svg)](https://doi.org/10.5281/zenodo.22942598)
 [![Concept DOI: OEV Audit](https://img.shields.io/badge/Zenodo_Concept_DOI-10.5281%2Fzenodo.23623588-blue.svg)](https://doi.org/10.5281/zenodo.23623588)
-[![arXiv: 2609.30719](https://img.shields.io/badge/arXiv-2609.30719%20%5Bcs.CR%5D-b31b1b.svg)](https://arxiv.org/abs/2609.30719)
 
 
 **Werrealm** is the world's first bio-synthetic, neuromorphic, in-consensus oracle blockchain network.
